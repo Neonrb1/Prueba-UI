@@ -210,10 +210,19 @@ function NeonUI:Init()
     -- Crear contenedor principal
     self.Container = Utility:Create("ScreenGui", {
         Name = "NeonUI",
-        Parent = (gethui and gethui()) or (syn and syn.protect_gui and syn.protect_gui(self.Container)) or CoreGui,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         ResetOnSpawn = false
     })
+    
+    -- Establecer el parent con la protección adecuada
+    if gethui then
+        self.Container.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(self.Container)
+        self.Container.Parent = CoreGui
+    else
+        self.Container.Parent = CoreGui
+    end
     
     getgenv().NeonUIObject = self.Container
     
@@ -225,6 +234,366 @@ function NeonUI:Init()
     })
     
     return self
+end
+
+-- Sistema de notificaciones
+function NeonUI:Notify(options)
+    options = options or {}
+    local notification = {
+        Title = options.Title or "Notification",
+        Content = options.Content or "",
+        Duration = options.Duration or 5
+    }
+    
+    -- Marco principal de notificación
+    local notifFrame = Utility:Create("Frame", {
+        Name = "Notification",
+        BackgroundColor3 = self.Theme.Primary,
+        BorderSizePixel = 0,
+        Position = UDim2.new(1, -20, 1, -20),
+        AnchorPoint = Vector2.new(1, 1),
+        Size = UDim2.new(0, 280, 0, 80),
+        Parent = self.Container
+    })
+    
+    -- Bordes redondeados
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = notifFrame
+    })
+    
+    -- Barra de acento
+    local accentBar = Utility:Create("Frame", {
+        Name = "AccentBar",
+        BackgroundColor3 = self.Theme.Accent,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0, 4, 1, 0),
+        Parent = notifFrame
+    })
+    
+    -- Bordes redondeados para barra
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = accentBar
+    })
+    
+    -- Título
+    local titleLabel = Utility:Create("TextLabel", {
+        Name = "Title",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 8),
+        Size = UDim2.new(1, -50, 0, 24),
+        Font = self.Theme.Font,
+        Text = notification.Title,
+        TextColor3 = self.Theme.Text,
+        TextSize = self.Theme.FontSize + 2,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = notifFrame
+    })
+    
+    -- Contenido
+    local contentLabel = Utility:Create("TextLabel", {
+        Name = "Content",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 32),
+        Size = UDim2.new(1, -24, 0, 40),
+        Font = self.Theme.Font,
+        Text = notification.Content,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextSize = self.Theme.FontSize - 1,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        Parent = notifFrame
+    })
+    
+    -- Botón de cerrar
+    local closeButton = Utility:Create("ImageButton", {
+        Name = "CloseButton",
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -24, 0, 8),
+        Size = UDim2.fromOffset(16, 16),
+        Image = "rbxassetid://7733717447",
+        ImageColor3 = Color3.fromRGB(200, 200, 200),
+        Parent = notifFrame
+    })
+    
+    -- Barra de progreso
+    local progressBar = Utility:Create("Frame", {
+        Name = "ProgressBar",
+        BackgroundColor3 = self.Theme.Accent,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 0, 1, -2),
+        Size = UDim2.new(1, 0, 0, 2),
+        Parent = notifFrame
+    })
+    
+    -- Animación de entrada
+    notifFrame.Position = UDim2.new(1, 300, 1, -20)
+    notifFrame.Visible = true
+    
+    -- Animar entrada
+    Utility:Tween(notifFrame, {Position = UDim2.new(1, -20, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+    
+    -- Barra de progreso
+    Utility:Tween(progressBar, {Size = UDim2.new(0, 0, 0, 2)}, notification.Duration)
+    
+    -- Evento de cerrar
+    closeButton.MouseButton1Click:Connect(function()
+        Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+        task.wait(0.3)
+        notifFrame:Destroy()
+    end)
+    
+    -- Auto cerrar después de la duración
+    task.delay(notification.Duration, function()
+        if notifFrame and notifFrame.Parent then
+            Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+            task.wait(0.3)
+            notifFrame:Destroy()
+        end
+    end)
+    
+    return notifFrame
+end
+
+-- Diálogo modal
+function NeonUI:Dialog(options)
+    options = options or {}
+    local dialog = {
+        Title = options.Title or "Dialog",
+        Content = options.Content or "",
+        Buttons = options.Buttons or {{Title = "OK", Callback = function() end}}
+    }
+    
+    -- Overlay de fondo
+    local overlay = Utility:Create("Frame", {
+        Name = "DialogOverlay",
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        BorderSizePixel = 0,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ZIndex = 100,
+        Parent = self.Container
+    })
+    
+    -- Marco de diálogo
+    local dialogFrame = Utility:Create("Frame", {
+        Name = "DialogFrame",
+        BackgroundColor3 = self.Theme.Primary,
+        BorderSizePixel = 0,
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.fromOffset(300, 150),
+        ZIndex = 101,
+        Parent = overlay
+    })
+    
+    -- Bordes redondeados
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = dialogFrame
+    })
+    
+    -- Título
+    local titleLabel = Utility:Create("TextLabel", {
+        Name = "Title",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(15, 10),
+        Size = UDim2.new(1, -30, 0, 24),
+        Font = self.Theme.Font,
+        Text = dialog.Title,
+        TextColor3 = self.Theme.Text,
+        TextSize = self.Theme.FontSize + 2,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Separador
+    local separator = Utility:Create("Frame", {
+        Name = "Separator",
+        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 15, 0, 40),
+        Size = UDim2.new(1, -30, 0, 1),
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Contenido
+    local contentLabel = Utility:Create("TextLabel", {
+        Name = "Content",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(15, 50),
+        Size = UDim2.new(1, -30, 0, 60),
+        Font = self.Theme.Font,
+        Text = dialog.Content,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextSize = self.Theme.FontSize,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Contenedor de botones
+    local buttonContainer = Utility:Create("Frame", {
+        Name = "ButtonContainer",
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 0, 1, -50),
+        Size = UDim2.new(1, 0, 0, 40),
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Layout para botones
+    Utility:Create("UIListLayout", {
+        Padding = UDim.new(0, 10),
+        FillDirection = Enum.FillDirection.Horizontal,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = buttonContainer
+    })
+    
+    -- Crear botones
+    for i, buttonInfo in ipairs(dialog.Buttons) do
+        local button = Utility:Create("TextButton", {
+            Name = "Button_" .. i,
+            BackgroundColor3 = self.Theme.Accent,
+            BorderSizePixel = 0,
+            Size = UDim2.new(0, 100, 0, 30),
+            Font = self.Theme.Font,
+            Text = buttonInfo.Title,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = self.Theme.FontSize,
+            ZIndex = 103,
+            Parent = buttonContainer
+        })
+        
+        -- Bordes redondeados para botón
+        Utility:Create("UICorner", {
+            CornerRadius = UDim.new(0, 4),
+            Parent = button
+        })
+        
+        -- Evento de clic
+        button.MouseButton1Click:Connect(function()
+            -- Ejecutar callback
+            if buttonInfo.Callback then
+                buttonInfo.Callback()
+            end
+            
+            -- Animación de cierre
+            Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.3)
+            Utility:Tween(overlay, {BackgroundTransparency = 1}, 0.3)
+            task.wait(0.3)
+            overlay:Destroy()
+        end)
+    end
+    
+    -- Animación de apertura
+    dialogFrame.Size = UDim2.fromOffset(0, 0)
+    overlay.BackgroundTransparency = 1
+    Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(300, 150)}, 0.3)
+    Utility:Tween(overlay, {BackgroundTransparency = 0.5}, 0.3)
+    
+    return dialog
+end
+
+-- Obtener icono desde nombre
+function NeonUI:GetIcon(name)
+    local icons = {
+        home = "7733960981",
+        settings = "7734053495",
+        user = "7743871002",
+        star = "7734068321",
+        warning = "7734036668",
+        info = "7734010138",
+        plus = "7734056604",
+        minus = "7734062493",
+        search = "7734093360",
+        box = "7734155436",
+        folder = "7734172055",
+        chevron = "7734238686",
+        gear = "7734053495",
+        bell = "7743855514",
+        heart = "7733718216",
+        bookmark = "7743895266",
+        moon = "7743878047",
+        sun = "7733920644",
+        cloud = "7733821549",
+        globe = "7733778299",
+        lock = "7733885257",
+        unlock = "7733726102",
+        key = "7733832079",
+        flag = "7733777611",
+        trash = "7733673941",
+        edit = "7733799486",
+        pencil = "7733696245",
+        image = "7733946818",
+        video = "7733709455",
+        music = "7733656793",
+        mic = "7733839766",
+        phone = "7733790917",
+        mail = "7733889662",
+        send = "7733745099",
+        code = "7733944826",
+        terminal = "7733794336",
+        link = "7733865183",
+        coffee = "7733951482",
+        file = "7733791228",
+        archive = "7743824158",
+        layers = "7733859130",
+        compass = "7733857969",
+        map = "7733837011",
+        ["map-pin"] = "7733824551",
+        award = "7743823882",
+        upload = "7734172322",
+        download = "7733982464",
+        camera = "7733930958",
+        play = "7743985991",
+        pause = "7733904064",
+        stop = "7733754058",
+        message = "7733873146",
+        users = "7734095912",
+        activity = "7743823554",
+        alert = "7743824019",
+        eye = "7733760318",
+        ["eye-off"] = "7743877488",
+        gitlab = "7733897366",
+        github = "7733873313",
+        calendar = "7733812303",
+        paperclip = "7733903117",
+        scissors = "7734142322",
+        tag = "7734197488",
+        tags = "7733980420",
+        tool = "7733928794",
+        ["bar-chart"] = "7743825153",
+        ["pie-chart"] = "7743883343",
+        ["line-chart"] = "7743880222",
+        zap = "7733679869",
+        check = "7733956746",
+        ["x"] = "7733717447",
+        sliders = "7734176202",
+        target = "7734226711",
+        shield = "7734231071",
+        sword = "7743915270",
+        wifi = "7734114676",
+        bluetooth = "7733768238",
+        share = "7734181035",
+        printer = "7733913543",
+        cpu = "7733929456",
+        speaker = "7734052733",
+        tv = "7733766052",
+        ["log-out"] = "7733978918",
+        ["log-in"] = "7733923449"
+    }
+    
+    return icons[name:lower()] or "7733717447" -- Default to X icon
 end
 
 -- Crear ventana
@@ -271,11 +640,6 @@ function NeonUI:CreateWindow(options)
         AnchorPoint = Vector2.new(0.5, 0.5),
         Size = window.Size,
         Parent = self.Container
-    })
-    
-    -- Efecto de sombra
-    Utility:Create("DropShadow", {
-        Parent = window.Frame
     })
     
     -- Bordes redondeados
@@ -423,7 +787,7 @@ function NeonUI:CreateWindow(options)
     -- Funcionalidad de los botones
     window.CloseButton.MouseButton1Click:Connect(function()
         Utility:Tween(window.Frame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.25)
-        wait(0.25)
+        task.wait(0.25)
         self.Container:Destroy()
     end)
     
@@ -539,7 +903,7 @@ function NeonUI:CreateWindow(options)
         -- Seleccionar tab al hacer clic
         tab.Button.MouseButton1Click:Connect(function()
             window:SelectTab(tab)
-        })
+        end)
         
         -- Añadir tab a la lista
         table.insert(window.Tabs, tab)
@@ -627,8 +991,6 @@ function NeonUI:CreateWindow(options)
             
             -- Añadir sección a la lista
             table.insert(tab.Sections, section)
-            
-            -- Agregar elementos a la sección
             
             -- Botón
             function section:AddButton(options)
@@ -1268,6 +1630,91 @@ function NeonUI:CreateWindow(options)
                 return input
             end
             
+            -- Texto informativo
+            function section:AddParagraph(options)
+                options = options or {}
+                local paragraph = {
+                    Title = options.Title or "Paragraph",
+                    Content = options.Content or ""
+                }
+                
+                -- Calcular altura en función del contenido
+                local contentLines = #string.split(paragraph.Content, "\n")
+                local paragraphHeight = 36 + (contentLines * 20)
+                
+                -- Contenedor del párrafo
+                paragraph.Container = Utility:Create("Frame", {
+                    Name = paragraph.Title .. "Paragraph",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, paragraphHeight),
+                    Parent = section.ElementsContainer
+                })
+                
+                -- Bordes redondeados
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = paragraph.Container
+                })
+                
+                -- Título
+                paragraph.TitleLabel = Utility:Create("TextLabel", {
+                    Name = "Title",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 5),
+                    Size = UDim2.new(1, -20, 0, 26),
+                    Font = NeonUI.Theme.Font,
+                    Text = paragraph.Title,
+                    TextColor3 = NeonUI.Theme.Text,
+                    TextSize = NeonUI.Theme.FontSize,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = paragraph.Container
+                })
+                
+                -- Separador
+                paragraph.Separator = Utility:Create("Frame", {
+                    Name = "Separator",
+                    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                    BorderSizePixel = 0,
+                    Position = UDim2.new(0, 10, 0, 30),
+                    Size = UDim2.new(1, -20, 0, 1),
+                    Parent = paragraph.Container
+                })
+                
+                -- Contenido
+                paragraph.ContentLabel = Utility:Create("TextLabel", {
+                    Name = "Content",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 36),
+                    Size = UDim2.new(1, -20, 0, paragraphHeight - 40),
+                    Font = NeonUI.Theme.Font,
+                    Text = paragraph.Content,
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
+                    TextSize = NeonUI.Theme.FontSize - 2,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Top,
+                    TextWrapped = true,
+                    Parent = paragraph.Container
+                })
+                
+                -- Método para actualizar el contenido
+                function paragraph:SetContent(content)
+                    paragraph.Content = content
+                    paragraph.ContentLabel.Text = content
+                    
+                    -- Recalcular altura
+                    local newContentLines = #string.split(content, "\n")
+                    local newHeight = 36 + (newContentLines * 20)
+                    paragraph.Container.Size = UDim2.new(1, 0, 0, newHeight)
+                    paragraph.ContentLabel.Size = UDim2.new(1, -20, 0, newHeight - 40)
+                end
+                
+                -- Añadir a la lista de elementos
+                table.insert(section.Elements, paragraph)
+                
+                return paragraph
+            end
+            
             -- Dropdown (Menú desplegable)
             function section:AddDropdown(options)
                 options = options or {}
@@ -1553,7 +2000,10 @@ function NeonUI:CreateWindow(options)
                     end
                     
                     -- Actualizar tamaño del canvas
-                    dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, dropdown.OptionScroll.UIListLayout.AbsoluteContentSize.Y + 10)
+                    local listLayout = dropdown.OptionScroll:FindFirstChildOfClass("UIListLayout")
+                    if listLayout then
+                        dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+                    end
                 end
                 
                 -- Función para alternar visibilidad
@@ -1575,7 +2025,7 @@ function NeonUI:CreateWindow(options)
                     else
                         Utility:Tween(dropdown.Arrow, {Rotation = 90}, 0.2)
                         Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
-                        wait(0.2)
+                        task.wait(0.2)
                         dropdown.OptionList.Visible = false
                     end
                 end
@@ -1609,17 +2059,22 @@ function NeonUI:CreateWindow(options)
                 -- Cerrar al hacer clic fuera
                 UserInputService.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                        if dropdown.Open and not dropdown.Button:IsDescendantOf(dropdown.Container) then
+                        if dropdown.Open then
                             local isInDropdown = false
                             
-                            if (input.Position.X >= dropdown.OptionList.AbsolutePosition.X and 
-                                input.Position.X <= dropdown.OptionList.AbsolutePosition.X + dropdown.OptionList.AbsoluteSize.X and 
-                                input.Position.Y >= dropdown.OptionList.AbsolutePosition.Y and 
-                                input.Position.Y <= dropdown.OptionList.AbsolutePosition.Y + dropdown.OptionList.AbsoluteSize.Y) then
+                            if dropdown.OptionList.Visible and 
+                               input.Position.X >= dropdown.OptionList.AbsolutePosition.X and 
+                               input.Position.X <= dropdown.OptionList.AbsolutePosition.X + dropdown.OptionList.AbsoluteSize.X and 
+                               input.Position.Y >= dropdown.OptionList.AbsolutePosition.Y and 
+                               input.Position.Y <= dropdown.OptionList.AbsolutePosition.Y + dropdown.OptionList.AbsoluteSize.Y then
                                 isInDropdown = true
                             end
                             
-                            if not isInDropdown then
+                            if not isInDropdown and
+                               not (input.Position.X >= dropdown.Button.AbsolutePosition.X and
+                                   input.Position.X <= dropdown.Button.AbsolutePosition.X + dropdown.Button.AbsoluteSize.X and
+                                   input.Position.Y >= dropdown.Button.AbsolutePosition.Y and
+                                   input.Position.Y <= dropdown.Button.AbsolutePosition.Y + dropdown.Button.AbsoluteSize.Y) then
                                 dropdown:Toggle(false)
                             end
                         end
@@ -1633,91 +2088,6 @@ function NeonUI:CreateWindow(options)
                 table.insert(section.Elements, dropdown)
                 
                 return dropdown
-            end
-            
-            -- Texto informativo
-            function section:AddParagraph(options)
-                options = options or {}
-                local paragraph = {
-                    Title = options.Title or "Paragraph",
-                    Content = options.Content or ""
-                }
-                
-                -- Calcular altura en función del contenido
-                local contentLines = #paragraph.Content:split("\n")
-                local paragraphHeight = 36 + (contentLines * 20)
-                
-                -- Contenedor del párrafo
-                paragraph.Container = Utility:Create("Frame", {
-                    Name = paragraph.Title .. "Paragraph",
-                    BackgroundColor3 = NeonUI.Theme.Secondary,
-                    BorderSizePixel = 0,
-                    Size = UDim2.new(1, 0, 0, paragraphHeight),
-                    Parent = section.ElementsContainer
-                })
-                
-                -- Bordes redondeados
-                Utility:Create("UICorner", {
-                    CornerRadius = UDim.new(0, 6),
-                    Parent = paragraph.Container
-                })
-                
-                -- Título
-                paragraph.TitleLabel = Utility:Create("TextLabel", {
-                    Name = "Title",
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(10, 5),
-                    Size = UDim2.new(1, -20, 0, 26),
-                    Font = NeonUI.Theme.Font,
-                    Text = paragraph.Title,
-                    TextColor3 = NeonUI.Theme.Text,
-                    TextSize = NeonUI.Theme.FontSize,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = paragraph.Container
-                })
-                
-                -- Separador
-                paragraph.Separator = Utility:Create("Frame", {
-                    Name = "Separator",
-                    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-                    BorderSizePixel = 0,
-                    Position = UDim2.new(0, 10, 0, 30),
-                    Size = UDim2.new(1, -20, 0, 1),
-                    Parent = paragraph.Container
-                })
-                
-                -- Contenido
-                paragraph.ContentLabel = Utility:Create("TextLabel", {
-                    Name = "Content",
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(10, 36),
-                    Size = UDim2.new(1, -20, 0, paragraphHeight - 40),
-                    Font = NeonUI.Theme.Font,
-                    Text = paragraph.Content,
-                    TextColor3 = Color3.fromRGB(200, 200, 200),
-                    TextSize = NeonUI.Theme.FontSize - 2,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextYAlignment = Enum.TextYAlignment.Top,
-                    TextWrapped = true,
-                    Parent = paragraph.Container
-                })
-                
-                -- Método para actualizar el contenido
-                function paragraph:SetContent(content)
-                    paragraph.Content = content
-                    paragraph.ContentLabel.Text = content
-                    
-                    -- Recalcular altura
-                    local newContentLines = #content:split("\n")
-                    local newHeight = 36 + (newContentLines * 20)
-                    paragraph.Container.Size = UDim2.new(1, 0, 0, newHeight)
-                    paragraph.ContentLabel.Size = UDim2.new(1, -20, 0, newHeight - 40)
-                end
-                
-                -- Añadir a la lista de elementos
-                table.insert(section.Elements, paragraph)
-                
-                return paragraph
             end
             
             return section
@@ -1795,369 +2165,6 @@ function NeonUI:CreateWindow(options)
     
     table.insert(self.Windows, window)
     return window
-end
-
--- Sistema de notificaciones
-function NeonUI:Notify(options)
-    options = options or {}
-    local notification = {
-        Title = options.Title or "Notification",
-        Content = options.Content or "",
-        Duration = options.Duration or 5
-    }
-    
-    -- Marco principal de notificación
-    local notifFrame = Utility:Create("Frame", {
-        Name = "Notification",
-        BackgroundColor3 = self.Theme.Primary,
-        BorderSizePixel = 0,
-        Position = UDim2.new(1, -20, 1, -20),
-        AnchorPoint = Vector2.new(1, 1),
-        Size = UDim2.new(0, 280, 0, 80),
-        Parent = self.Container
-    })
-    
-    -- Bordes redondeados
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = notifFrame
-    })
-    
-    -- Barra de acento
-    local accentBar = Utility:Create("Frame", {
-        Name = "AccentBar",
-        BackgroundColor3 = self.Theme.Accent,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 0, 0),
-        Size = UDim2.new(0, 4, 1, 0),
-        Parent = notifFrame
-    })
-    
-    -- Bordes redondeados para barra
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = accentBar
-    })
-    
-    -- Título
-    local titleLabel = Utility:Create("TextLabel", {
-        Name = "Title",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(12, 8),
-        Size = UDim2.new(1, -50, 0, 24),
-        Font = self.Theme.Font,
-        Text = notification.Title,
-        TextColor3 = self.Theme.Text,
-        TextSize = self.Theme.FontSize + 2,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = notifFrame
-    })
-    
-    -- Contenido
-    local contentLabel = Utility:Create("TextLabel", {
-        Name = "Content",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(12, 32),
-        Size = UDim2.new(1, -24, 0, 40),
-        Font = self.Theme.Font,
-        Text = notification.Content,
-        TextColor3 = Color3.fromRGB(200, 200, 200),
-        TextSize = self.Theme.FontSize - 1,
-        TextWrapped = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        Parent = notifFrame
-    })
-    
-    -- Botón de cerrar
-    local closeButton = Utility:Create("ImageButton", {
-        Name = "CloseButton",
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1, -24, 0, 8),
-        Size = UDim2.fromOffset(16, 16),
-        Image = "rbxassetid://7733717447",
-        ImageColor3 = Color3.fromRGB(200, 200, 200),
-        Parent = notifFrame
-    })
-    
-    -- Barra de progreso
-    local progressBar = Utility:Create("Frame", {
-        Name = "ProgressBar",
-        BackgroundColor3 = self.Theme.Accent,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 1, -2),
-        Size = UDim2.new(1, 0, 0, 2),
-        Parent = notifFrame
-    })
-    
-    -- Animación de entrada
-    notifFrame.Position = UDim2.new(1, 300, 1, -20)
-    notifFrame.Visible = true
-    
-    -- Animar entrada
-    Utility:Tween(notifFrame, {Position = UDim2.new(1, -20, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
-    
-    -- Barra de progreso
-    Utility:Tween(progressBar, {Size = UDim2.new(0, 0, 0, 2)}, notification.Duration)
-    
-    -- Evento de cerrar
-    closeButton.MouseButton1Click:Connect(function()
-        Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
-        wait(0.3)
-        notifFrame:Destroy()
-    end)
-    
-    -- Auto cerrar después de la duración
-    task.delay(notification.Duration, function()
-        if notifFrame and notifFrame.Parent then
-            Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
-            wait(0.3)
-            notifFrame:Destroy()
-        end
-    end)
-    
-    return notifFrame
-end
-
--- Diálogo modal
-function NeonUI:Dialog(options)
-    options = options or {}
-    local dialog = {
-        Title = options.Title or "Dialog",
-        Content = options.Content or "",
-        Buttons = options.Buttons or {{Title = "OK", Callback = function() end}}
-    }
-    
-    -- Overlay de fondo
-    local overlay = Utility:Create("Frame", {
-        Name = "DialogOverlay",
-        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 0.5,
-        BorderSizePixel = 0,
-        Position = UDim2.fromScale(0, 0),
-        Size = UDim2.fromScale(1, 1),
-        ZIndex = 100,
-        Parent = self.Container
-    })
-    
-    -- Marco de diálogo
-    local dialogFrame = Utility:Create("Frame", {
-        Name = "DialogFrame",
-        BackgroundColor3 = self.Theme.Primary,
-        BorderSizePixel = 0,
-        Position = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Size = UDim2.fromOffset(300, 150),
-        ZIndex = 101,
-        Parent = overlay
-    })
-    
-    -- Bordes redondeados
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 8),
-        Parent = dialogFrame
-    })
-    
-    -- Título
-    local titleLabel = Utility:Create("TextLabel", {
-        Name = "Title",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(15, 10),
-        Size = UDim2.new(1, -30, 0, 24),
-        Font = self.Theme.Font,
-        Text = dialog.Title,
-        TextColor3 = self.Theme.Text,
-        TextSize = self.Theme.FontSize + 2,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 102,
-        Parent = dialogFrame
-    })
-    
-    -- Separador
-    local separator = Utility:Create("Frame", {
-        Name = "Separator",
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 15, 0, 40),
-        Size = UDim2.new(1, -30, 0, 1),
-        ZIndex = 102,
-        Parent = dialogFrame
-    })
-    
-    -- Contenido
-    local contentLabel = Utility:Create("TextLabel", {
-        Name = "Content",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(15, 50),
-        Size = UDim2.new(1, -30, 0, 60),
-        Font = self.Theme.Font,
-        Text = dialog.Content,
-        TextColor3 = Color3.fromRGB(200, 200, 200),
-        TextSize = self.Theme.FontSize,
-        TextWrapped = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        ZIndex = 102,
-        Parent = dialogFrame
-    })
-    
-    -- Contenedor de botones
-    local buttonContainer = Utility:Create("Frame", {
-        Name = "ButtonContainer",
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 0, 1, -50),
-        Size = UDim2.new(1, 0, 0, 40),
-        ZIndex = 102,
-        Parent = dialogFrame
-    })
-    
-    -- Layout para botones
-    Utility:Create("UIListLayout", {
-        Padding = UDim.new(0, 10),
-        FillDirection = Enum.FillDirection.Horizontal,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = buttonContainer
-    })
-    
-    -- Crear botones
-    for i, buttonInfo in ipairs(dialog.Buttons) do
-        local button = Utility:Create("TextButton", {
-            Name = "Button_" .. i,
-            BackgroundColor3 = self.Theme.Accent,
-            BorderSizePixel = 0,
-            Size = UDim2.new(0, 100, 0, 30),
-            Font = self.Theme.Font,
-            Text = buttonInfo.Title,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = self.Theme.FontSize,
-            ZIndex = 103,
-            Parent = buttonContainer
-        })
-        
-        -- Bordes redondeados para botón
-        Utility:Create("UICorner", {
-            CornerRadius = UDim.new(0, 4),
-            Parent = button
-        })
-        
-        -- Evento de clic
-        button.MouseButton1Click:Connect(function()
-            -- Ejecutar callback
-            if buttonInfo.Callback then
-                buttonInfo.Callback()
-            end
-            
-            -- Animación de cierre
-            Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.3)
-            Utility:Tween(overlay, {BackgroundTransparency = 1}, 0.3)
-            wait(0.3)
-            overlay:Destroy()
-        })
-    end
-    
-    -- Animación de apertura
-    dialogFrame.Size = UDim2.fromOffset(0, 0)
-    overlay.BackgroundTransparency = 1
-    Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(300, 150)}, 0.3)
-    Utility:Tween(overlay, {BackgroundTransparency = 0.5}, 0.3)
-    
-    return dialog
-end
-
--- Obtener icono desde nombre
-function NeonUI:GetIcon(name)
-    local icons = {
-        home = "7733960981",
-        settings = "7734053495",
-        user = "7743871002",
-        star = "7734068321",
-        warning = "7734036668",
-        info = "7734010138",
-        plus = "7734056604",
-        minus = "7734062493",
-        search = "7734093360",
-        box = "7734155436",
-        folder = "7734172055",
-        chevron = "7734238686",
-        gear = "7734053495",
-        bell = "7743855514",
-        heart = "7733718216",
-        bookmark = "7743895266",
-        moon = "7743878047",
-        sun = "7733920644",
-        cloud = "7733821549",
-        globe = "7733778299",
-        lock = "7733885257",
-        unlock = "7733726102",
-        key = "7733832079",
-        flag = "7733777611",
-        trash = "7733673941",
-        edit = "7733799486",
-        pencil = "7733696245",
-        image = "7733946818",
-        video = "7733709455",
-        music = "7733656793",
-        mic = "7733839766",
-        phone = "7733790917",
-        mail = "7733889662",
-        send = "7733745099",
-        code = "7733944826",
-        terminal = "7733794336",
-        link = "7733865183",
-        coffee = "7733951482",
-        file = "7733791228",
-        box = "7743824618",
-        archive = "7743824158",
-        layers = "7733859130",
-        compass = "7733857969",
-        map = "7733837011",
-        "map-pin" = "7733824551",
-        award = "7743823882",
-        upload = "7734172322",
-        download = "7733982464",
-        cloud = "7733821549",
-        camera = "7733930958",
-        play = "7743985991",
-        pause = "7733904064",
-        stop = "7733754058",
-        message = "7733873146",
-        users = "7734095912",
-        activity = "7743823554",
-        alert = "7743824019",
-        eye = "7733760318",
-        "eye-off" = "7743877488",
-        gitlab = "7733897366",
-        github = "7733873313",
-        calendar = "7733812303",
-        bookmark = "7733925599",
-        paperclip = "7733903117",
-        scissors = "7734142322",
-        tag = "7734197488",
-        tags = "7733980420",
-        tool = "7733928794",
-        "bar-chart" = "7743825153",
-        "pie-chart" = "7743883343",
-        "line-chart" = "7743880222",
-        zap = "7733679869",
-        check = "7733956746",
-        "x" = "7733717447",
-        sliders = "7734176202",
-        target = "7734226711",
-        shield = "7734231071",
-        sword = "7743915270",
-        wifi = "7734114676",
-        bluetooth = "7733768238",
-        share = "7734181035",
-        printer = "7733913543",
-        cpu = "7733929456",
-        speaker = "7734052733",
-        tv = "7733766052",
-        "log-out" = "7733978918",
-        "log-in" = "7733923449"
-    }
-    
-    return icons[name:lower()] or "7733717447" -- Default to X icon
 end
 
 return NeonUI
