@@ -1588,7 +1588,7 @@ function NeonUI:CreateWindow(options)
                     Name = "ButtonElement",
                     BackgroundColor3 = NeonUI.Theme.Accent,
                     BorderSizePixel = 0,
-                    Position = UDim2.new(1, -105, 0, 5),
+                    Position = UDim2.new(1, -110, 0.5, -13), -- Posición centrada verticalmente
                     Size = UDim2.new(0, 95, 0, 26),
                     Font = NeonUI.Theme.Font,
                     Text = window.Theme == "Lava" and "CLICK" or button.Title,
@@ -1697,7 +1697,7 @@ function NeonUI:CreateWindow(options)
                     Utility:Tween(button.ButtonElement, {
                         BackgroundColor3 = NeonUI.Theme.Accent,
                         Size = UDim2.new(0, 95, 0, 26),
-                        Position = UDim2.new(1, -105, 0, 5)
+                        Position = UDim2.new(1, -110, 0.5, -13) -- Posición original
                     }, 0.2)
                 end)
                 
