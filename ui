@@ -1,14 +1,16 @@
 --[[
-    NeonUI Core - Biblioteca principal con tema Lava
-    Desarrollado por: MRX y Claude
-    Versión: 3.0
+    NeonUI Library
+    Desarrollado por: MRX
+    
+    Una biblioteca de UI moderna y personalizable para scripts de Roblox
+    Compatible con PC y dispositivos móviles
     
     Características:
-    - Diseño moderno con tema lava y efectos visuales
-    - Estructura modular similar a Fluent UI
-    - Soporte completo para dispositivos móviles
-    - Sistema de temas personalizables
-    - Componentes avanzados con efectos visuales
+    - Diseño moderno con animaciones fluidas
+    - Totalmente personalizable con temas
+    - Soporte para dispositivos móviles y PC
+    - Sistema de guardado de configuración
+    - Componentes avanzados e interactivos
 ]]
 
 -- Servicios
@@ -16,122 +18,30 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
 
 -- Variables locales
 local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Temas de la UI
-local Themes = {
-    Lava = {
-        Name = "Lava",
-        bg = {
-            top = Color3.fromRGB(15, 15, 15),
-            middle = Color3.fromRGB(25, 8, 8),
-            bottom = Color3.fromRGB(35, 8, 8),
-            dark = Color3.fromRGB(10, 5, 5)
-        },
-        accent = {
-            primary = Color3.fromRGB(255, 65, 10),      -- Naranja lava primario
-            secondary = Color3.fromRGB(230, 30, 30),    -- Rojo intenso
-            tertiary = Color3.fromRGB(180, 20, 20),     -- Rojo oscuro
-            glow = Color3.fromRGB(255, 100, 20),        -- Brillo lava
-            ember = Color3.fromRGB(255, 180, 30)        -- Brillo ámbar/chispa
-        },
-        text = {
-            primary = Color3.fromRGB(255, 255, 255),    -- Blanco
-            secondary = Color3.fromRGB(220, 220, 220),  -- Gris claro
-            disabled = Color3.fromRGB(150, 150, 150)    -- Gris
-        },
-        status = {
-            success = Color3.fromRGB(80, 255, 120),     -- Verde
-            warning = Color3.fromRGB(255, 235, 50),     -- Amarillo
-            error = Color3.fromRGB(255, 60, 60)         -- Rojo
-        }
-    },
-    Midnight = {
-        Name = "Midnight",
-        bg = {
-            top = Color3.fromRGB(15, 15, 25),
-            middle = Color3.fromRGB(8, 8, 25),
-            bottom = Color3.fromRGB(8, 8, 35),
-            dark = Color3.fromRGB(5, 5, 15)
-        },
-        accent = {
-            primary = Color3.fromRGB(65, 10, 255),      -- Azul primario
-            secondary = Color3.fromRGB(30, 30, 230),    -- Azul intenso
-            tertiary = Color3.fromRGB(20, 20, 180),     -- Azul oscuro
-            glow = Color3.fromRGB(100, 20, 255),        -- Brillo púrpura
-            ember = Color3.fromRGB(180, 30, 255)        -- Brillo azul/chispa
-        },
-        text = {
-            primary = Color3.fromRGB(255, 255, 255),    -- Blanco
-            secondary = Color3.fromRGB(220, 220, 220),  -- Gris claro
-            disabled = Color3.fromRGB(150, 150, 150)    -- Gris
-        },
-        status = {
-            success = Color3.fromRGB(80, 255, 120),     -- Verde
-            warning = Color3.fromRGB(255, 235, 50),     -- Amarillo
-            error = Color3.fromRGB(255, 60, 60)         -- Rojo
-        }
-    },
-    Neon = {
-        Name = "Neon",
-        bg = {
-            top = Color3.fromRGB(15, 15, 15),
-            middle = Color3.fromRGB(10, 12, 15),
-            bottom = Color3.fromRGB(8, 10, 12),
-            dark = Color3.fromRGB(5, 5, 5)
-        },
-        accent = {
-            primary = Color3.fromRGB(0, 255, 200),      -- Verde neón
-            secondary = Color3.fromRGB(0, 200, 255),    -- Azul neón
-            tertiary = Color3.fromRGB(20, 100, 180),    -- Azul oscuro
-            glow = Color3.fromRGB(0, 255, 220),         -- Brillo verde/azul
-            ember = Color3.fromRGB(100, 255, 180)       -- Brillo verde claro
-        },
-        text = {
-            primary = Color3.fromRGB(255, 255, 255),    -- Blanco
-            secondary = Color3.fromRGB(220, 220, 220),  -- Gris claro
-            disabled = Color3.fromRGB(150, 150, 150)    -- Gris
-        },
-        status = {
-            success = Color3.fromRGB(80, 255, 120),     -- Verde
-            warning = Color3.fromRGB(255, 235, 50),     -- Amarillo
-            error = Color3.fromRGB(255, 60, 60)         -- Rojo
-        }
-    }
-}
-
--- Iconos integrados (rbxassetid)
-local Icons = {
-    home = "9835862639",
-    user = "9835868665",
-    gear = "9835867929",
-    award = "9835865192",
-    info = "7743885257",
-    alert = "7743824019",
-    check = "7733956746",
-    x = "7733717447",
-    fire = "9482093348",
-    flame = "9835870123",
-    bolt = "7733679869",
-    star = "7734068321",
-    heart = "7733718216",
-    settings = "7734053495",
-    code = "7733944826",
-    terminal = "7733794336",
-    edit = "7733799486",
-    trash = "7733673941"
-}
+-- Constantes UI
+local FONT = Enum.Font.GothamSemibold
+local FONT_SIZE = 14
+local PRIMARY_COLOR = Color3.fromRGB(32, 35, 36)
+local SECONDARY_COLOR = Color3.fromRGB(50, 55, 56)
+local ACCENT_COLOR = Color3.fromRGB(66, 134, 244)
+local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
+local TRANSPARENCY = 0.05
+local CORNER_RADIUS = UDim.new(0, 8)
+local STROKE_THICKNESS = 1
+local STROKE_COLOR = Color3.fromRGB(80, 80, 80)
 
 -- Utilidades
 local Utility = {}
 
--- Crear objetos con propiedades
+-- Crear objetos de instancia con propiedades
 function Utility:Create(instance, properties, children)
     local object = Instance.new(instance)
     
@@ -147,51 +57,40 @@ function Utility:Create(instance, properties, children)
 end
 
 -- Crear Tween
-function Utility:Tween(instance, properties, duration, style, direction)
-    style = style or Enum.EasingStyle.Quad
-    direction = direction or Enum.EasingDirection.Out
-    
-    local tween = TweenService:Create(
-        instance, 
-        TweenInfo.new(duration, style, direction), 
-        properties
-    )
+function Utility:Tween(instance, properties, duration, ...)
+    local tween = TweenService:Create(instance, TweenInfo.new(duration, ...), properties)
     tween:Play()
     return tween
 end
 
 -- Ripple Effect (efecto de onda al hacer clic)
-function Utility:Ripple(instance, color)
-    spawn(function()
-        color = color or Color3.fromRGB(255, 255, 255)
-        
-        local ripple = self:Create("Frame", {
-            Name = "Ripple",
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = color,
-            BackgroundTransparency = 0.7,
-            Position = UDim2.fromOffset(Mouse.X - instance.AbsolutePosition.X, Mouse.Y - instance.AbsolutePosition.Y),
-            Size = UDim2.fromScale(0, 0),
-            ZIndex = 2,
-            Parent = instance
-        })
-        
-        local corner = self:Create("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = ripple
-        })
-        
-        local targetSize = UDim2.fromScale(2, 2)
-        self:Tween(ripple, {Size = targetSize, BackgroundTransparency = 1}, 0.5)
-        
-        task.delay(0.5, function()
-            ripple:Destroy()
-        end)
+function Utility:Ripple(instance)
+    local ripple = self:Create("Frame", {
+        Name = "Ripple",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundTransparency = 0.7,
+        Position = UDim2.fromOffset(Mouse.X - instance.AbsolutePosition.X, Mouse.Y - instance.AbsolutePosition.Y),
+        Size = UDim2.fromScale(0, 0),
+        ZIndex = 2,
+        Parent = instance
+    })
+    
+    local corner = self:Create("UICorner", {
+        CornerRadius = UDim.new(1, 0),
+        Parent = ripple
+    })
+    
+    local targetSize = UDim2.fromScale(2, 2)
+    self:Tween(ripple, {Size = targetSize, BackgroundTransparency = 1}, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    task.delay(0.5, function()
+        ripple:Destroy()
     end)
 end
 
 -- Arrastrar elementos
-function Utility:MakeDraggable(frame, dragui)
+function Utility:Draggable(frame, dragui)
     local dragging, dragInput, dragStart, startPos
     
     local function updateDrag(input)
@@ -226,428 +125,10 @@ function Utility:MakeDraggable(frame, dragui)
     end)
 end
 
--- Sistema de efectos visuales
-local Effects = {}
-
--- Crear efecto de resplandor
-function Effects:CreateGlow(parent, color, size, zIndex, transparency)
-    color = color or Themes.Lava.accent.glow
-    size = size or 1.5
-    zIndex = zIndex or (parent.ZIndex - 1)
-    transparency = transparency or 0.7
-    
-    local glow = Utility:Create("ImageLabel", {
-        Name = "Glow",
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857084", -- Imagen de resplandor circular
-        ImageColor3 = color,
-        ImageTransparency = transparency,
-        ZIndex = zIndex,
-        Parent = parent
-    })
-    
-    -- Calcular tamaño del resplandor
-    local parentSize = parent.AbsoluteSize
-    glow.Size = UDim2.new(1, parentSize.X * (size - 1), 1, parentSize.Y * (size - 1))
-    glow.Position = UDim2.new(0.5, -parentSize.X * (size - 1)/2, 0.5, -parentSize.Y * (size - 1)/2)
-    glow.AnchorPoint = Vector2.new(0.5, 0.5)
-    
-    -- Animar el resplandor
-    spawn(function()
-        local pulseSpeed = 0.05
-        local minTrans = transparency
-        local maxTrans = minTrans + 0.2
-        
-        while glow.Parent do
-            for i = minTrans, maxTrans, pulseSpeed do
-                if not glow or not glow.Parent then break end
-                glow.ImageTransparency = i
-                wait(0.05)
-            end
-            for i = maxTrans, minTrans, -pulseSpeed do
-                if not glow or not glow.Parent then break end
-                glow.ImageTransparency = i
-                wait(0.05)
-            end
-        end
-    end)
-    
-    return glow
-end
-
--- Crear efecto de partículas
-function Effects:CreateParticles(parent, color, count, size, speed)
-    color = color or Themes.Lava.accent.glow
-    count = count or 15
-    local minSize = (size and size[1]) or 2
-    local maxSize = (size and size[2]) or 5
-    speed = speed or 0.5
-    
-    local container = Utility:Create("Frame", {
-        Name = "ParticleContainer",
-        BackgroundTransparency = 1,
-        Size = UDim2.fromScale(1, 1),
-        ClipsDescendants = true,
-        ZIndex = parent.ZIndex,
-        Parent = parent
-    })
-    
-    for i = 1, count do
-        local particle = Utility:Create("Frame", {
-            Name = "Particle_" .. i,
-            BorderSizePixel = 0,
-            BackgroundColor3 = color,
-            Size = UDim2.fromOffset(math.random(minSize, maxSize), math.random(minSize, maxSize)),
-            Position = UDim2.fromScale(math.random(), math.random()),
-            Parent = container
-        })
-        
-        -- Hacer redondo
-        Utility:Create("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = particle
-        })
-        
-        -- Animar partícula
-        spawn(function()
-            local offsetY = 0
-            local randSpeed = math.random(speed * 50, speed * 150) / 100
-            local randX = math.random(-20, 20) / 100
-            
-            while particle.Parent do
-                -- Movimiento ascendente
-                offsetY = offsetY - 0.01 * randSpeed
-                local newPosY = (particle.Position.Y.Scale + offsetY) % 1
-                local newPosX = (particle.Position.X.Scale + math.sin(offsetY * 3) * randX) % 1
-                
-                -- Actualizar posición
-                particle.Position = UDim2.fromScale(newPosX, newPosY)
-                
-                -- Parpadeo sutil
-                particle.BackgroundTransparency = 0.2 + (math.sin(offsetY * 10) + 1) / 10
-                
-                wait()
-            end
-        end)
-    end
-    
-    return container
-end
-
--- Crear efecto de lava burbujeante en el fondo
-function Effects:CreateLavaBackground(parent, theme)
-    theme = theme or Themes.Lava
-    
-    local bgFrame = Utility:Create("Frame", {
-        Name = "LavaBackground",
-        BackgroundColor3 = theme.bg.dark,
-        BorderSizePixel = 0,
-        Size = UDim2.fromScale(1, 1),
-        ZIndex = parent.ZIndex,
-        ClipsDescendants = true,
-        Parent = parent
-    })
-    
-    -- Asegurar esquinas perfectas copiando las del padre
-    if parent:FindFirstChild("UICorner") then
-        local parentCorner = parent:FindFirstChild("UICorner")
-        local bgCorner = parentCorner:Clone()
-        bgCorner.Parent = bgFrame
-    end
-    
-    -- Gradient de fondo mejorado
-    local gradient = Utility:Create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, theme.bg.top),
-            ColorSequenceKeypoint.new(0.3, theme.bg.middle:Lerp(theme.bg.dark, 0.3)),
-            ColorSequenceKeypoint.new(0.7, theme.bg.middle:Lerp(theme.accent.tertiary, 0.2)),
-            ColorSequenceKeypoint.new(1, theme.bg.bottom)
-        }),
-        Rotation = 90,
-        Parent = bgFrame
-    })
-    
-    -- Añadir borde interior brillante
-    local innerBorder = Utility:Create("UIStroke", {
-        Name = "InnerGlow",
-        Color = theme.accent.primary,
-        Thickness = 1,
-        Transparency = 0.7,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-        Parent = bgFrame
-    })
-    
-    -- Animar el borde interno
-    spawn(function()
-        while innerBorder.Parent do
-            for i = 0.7, 0.4, -0.02 do
-                if not innerBorder or not innerBorder.Parent then break end
-                innerBorder.Transparency = i
-                wait(0.05)
-            end
-            for i = 0.4, 0.7, 0.02 do
-                if not innerBorder or not innerBorder.Parent then break end
-                innerBorder.Transparency = i
-                wait(0.05)
-            end
-        end
-    end)
-    
-    -- Animar gradiente sutilmente
-    spawn(function()
-        local offset = 0
-        while gradient.Parent do
-            offset = offset + 0.01
-            local intensity = (math.sin(offset) + 1) / 4
-            
-            gradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, theme.bg.top),
-                ColorSequenceKeypoint.new(0.4, theme.bg.middle:Lerp(theme.accent.tertiary, intensity * 0.2)),
-                ColorSequenceKeypoint.new(1, theme.bg.bottom:Lerp(theme.accent.tertiary, intensity * 0.3))
-            })
-            
-            wait(0.05)
-        end
-    end)
-    
-    -- Crear partículas de lava
-    Effects:CreateParticles(bgFrame, theme.accent.primary, 10, {3, 6}, 0.3)
-    
-    -- Crear burbujas de lava
-    local numBlobs = 5
-    for i = 1, numBlobs do
-        local size = math.random(50, 120)
-        local blob = Utility:Create("Frame", {
-            Name = "LavaBlob_" .. i,
-            Size = UDim2.fromOffset(size, size),
-            Position = UDim2.fromScale(math.random(), 0.8 + math.random() * 0.4),
-            BackgroundColor3 = theme.accent.tertiary:Lerp(theme.accent.primary, math.random(30, 70)/100),
-            BackgroundTransparency = 0.6,
-            BorderSizePixel = 0,
-            ZIndex = bgFrame.ZIndex + 1,
-            Parent = bgFrame
-        })
-        
-        -- Hacer orgánico con esquinas redondeadas
-        Utility:Create("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = blob
-        })
-        
-        -- Efecto de gradiente radial para sensación 3D
-        Utility:Create("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, theme.accent.primary:Lerp(Color3.new(1,1,1), 0.2)),
-                ColorSequenceKeypoint.new(0.7, blob.BackgroundColor3),
-                ColorSequenceKeypoint.new(1, theme.accent.tertiary:Lerp(Color3.new(0,0,0), 0.3))
-            }),
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.4),
-                NumberSequenceKeypoint.new(0.7, 0.6),
-                NumberSequenceKeypoint.new(1, 0.95)
-            }),
-            Parent = blob
-        })
-        
-        -- Animar blob
-        spawn(function()
-            local speed = math.random(5, 15) / 1000
-            local wobbleSpeed = math.random(5, 20) / 10
-            local wobbleIntensity = math.random(5, 15) / 100
-            local posY = blob.Position.Y.Scale
-            local posX = blob.Position.X.Scale
-            local time = 0
-            
-            while blob.Parent do
-                time = time + 0.016
-                
-                -- Movimiento ascendente con wobble
-                posY = posY - speed
-                if posY < -0.2 then posY = 1.2 end
-                
-                local wobbleX = math.sin(time * wobbleSpeed) * wobbleIntensity
-                
-                blob.Position = UDim2.fromScale(posX + wobbleX, posY)
-                
-                -- Pulsación de la burbuja
-                local pulseScale = 1 + math.sin(time * 2) * 0.05
-                blob.Size = UDim2.fromOffset(size * pulseScale, size * pulseScale)
-                
-                wait()
-            end
-        end)
-    end
-    
-    return bgFrame
-end
-
--- Sistema de notificaciones
-local NotificationSystem = {}
-
-function NotificationSystem:Notify(parent, title, content, duration, type)
-    parent = parent or game:GetService("CoreGui")
-    duration = duration or 3
-    type = type or "info" -- info, success, warning, error
-    
-    -- Elegir color según el tipo
-    local colors = Themes.Lava.status
-    local color
-    
-    if type == "success" then
-        color = colors.success
-    elseif type == "warning" then
-        color = colors.warning
-    elseif type == "error" then
-        color = colors.error
-    else
-        color = Themes.Lava.accent.primary
-    end
-    
-    -- Crear notificación
-    local notification = Utility:Create("Frame", {
-        Name = "Notification",
-        BackgroundColor3 = Themes.Lava.bg.dark,
-        BorderSizePixel = 0,
-        Position = UDim2.new(1, 10, 0.8, 0),
-        Size = UDim2.new(0, 300, 0, 90),
-        Parent = parent,
-        AnchorPoint = Vector2.new(1, 1),
-        ZIndex = 100
-    })
-    
-    -- Añadir redondeado
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 10),
-        Parent = notification
-    })
-    
-    -- Barra de color
-    local colorBar = Utility:Create("Frame", {
-        Name = "ColorBar",
-        BackgroundColor3 = color,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 0, 0),
-        Size = UDim2.new(0, 5, 1, 0),
-        ZIndex = 101,
-        Parent = notification
-    })
-    
-    -- Redondear solo los bordes izquierdos de la barra de color
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 10),
-        Parent = colorBar
-    })
-    
-    -- Corregir para que solo redondee a la izquierda
-    Utility:Create("Frame", {
-        Name = "Fix",
-        BackgroundColor3 = color,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0.5, 0, 0, 0),
-        Size = UDim2.new(0.5, 0, 1, 0),
-        ZIndex = 101,
-        Parent = colorBar
-    })
-    
-    -- Título con gradiente
-    local notifTitle = Utility:Create("TextLabel", {
-        Name = "Title",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(15, 10),
-        Size = UDim2.new(1, -30, 0, 25),
-        Font = Enum.Font.GothamBold,
-        Text = title,
-        TextColor3 = Themes.Lava.text.primary,
-        TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 102,
-        Parent = notification
-    })
-    
-    -- Gradiente para el título
-    Utility:Create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Themes.Lava.text.primary),
-            ColorSequenceKeypoint.new(1, color)
-        }),
-        Parent = notifTitle
-    })
-    
-    -- Contenido
-    Utility:Create("TextLabel", {
-        Name = "Content",
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(15, 40),
-        Size = UDim2.new(1, -30, 0, 40),
-        Font = Enum.Font.Gotham,
-        Text = content,
-        TextColor3 = Themes.Lava.text.secondary,
-        TextSize = 14,
-        TextWrapped = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        ZIndex = 102,
-        Parent = notification
-    })
-    
-    -- Barra de progreso
-    local progressBar = Utility:Create("Frame", {
-        Name = "ProgressBar",
-        BackgroundColor3 = color,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 1, -2),
-        Size = UDim2.new(1, 0, 0, 2),
-        ZIndex = 101,
-        Parent = notification
-    })
-    
-    -- Animación de entrada
-    notification.Position = UDim2.new(1, 300, 0.8, 0)
-    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    local tweenIn = TweenService:Create(notification, tweenInfo, {
-        Position = UDim2.new(1, -20, 0.8, 0)
-    })
-    tweenIn:Play()
-    
-    -- Animación de la barra de progreso
-    local progressTween = TweenService:Create(progressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-        Size = UDim2.new(0, 0, 0, 2)
-    })
-    progressTween:Play()
-    
-    -- Temporizador para eliminar
-    delay(duration, function()
-        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-        local tweenOut = TweenService:Create(notification, tweenInfo, {
-            Position = UDim2.new(1, 300, 0.8, 0)
-        })
-        tweenOut:Play()
-        tweenOut.Completed:Connect(function()
-            notification:Destroy()
-        end)
-    end)
-    
-    -- Agregar funcionalidad de click para cerrar
-    notification.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-            local tweenOut = TweenService:Create(notification, tweenInfo, {
-                Position = UDim2.new(1, 300, 0.8, 0)
-            })
-            tweenOut:Play()
-            tweenOut.Completed:Connect(function()
-                notification:Destroy()
-            end)
-        end
-    end)
-    
-    return notification
-end
-
 -- Sistema de guardado
 local SaveSystem = {}
 
--- Generar ID único 
+-- Generar ID único para cada script
 function SaveSystem:GenerateUID()
     local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     return string.gsub(template, "[xy]", function (c)
@@ -658,7 +139,7 @@ end
 
 -- Guardar configuración
 function SaveSystem:SaveSettings(name, settings)
-    if not name then return false end
+    if not name then return end
     
     local success, result = pcall(function()
         return HttpService:JSONEncode(settings)
@@ -683,7 +164,7 @@ end
 
 -- Cargar configuración
 function SaveSystem:LoadSettings(name)
-    if not name then return nil end
+    if not name then return end
     
     local folderPath = "NeonUI/"
     local fileName = folderPath .. name .. ".json"
@@ -704,529 +185,733 @@ end
 -- NeonUI principal
 local NeonUI = {
     Windows = {},
-    Theme = Themes.Lava,
+    Theme = {
+        Primary = PRIMARY_COLOR,
+        Secondary = SECONDARY_COLOR,
+        Accent = ACCENT_COLOR,
+        Text = TEXT_COLOR,
+        Stroke = STROKE_COLOR,
+        Transparency = TRANSPARENCY,
+        CornerRadius = CORNER_RADIUS,
+        Font = FONT,
+        FontSize = FONT_SIZE
+    },
     Flags = {},
-    Version = "3.0"
+    Version = "1.0.0"
 }
 
 -- Inicialización de la UI
 function NeonUI:Init()
-    -- Verificar si ya existe una UI abierta
-    if _G.NeonUIObject then
-        _G.NeonUIObject:Destroy()
+    -- Destruir GUI existente si existe
+    if getgenv().NeonUIObject then
+        getgenv().NeonUIObject:Destroy()
     end
     
-    -- Crear ScreenGui principal
-    self.ScreenGui = Utility:Create("ScreenGui", {
-        Name = "NeonUIScreenGui",
-        ResetOnSpawn = false,
+    -- Crear contenedor principal
+    self.Container = Utility:Create("ScreenGui", {
+        Name = "NeonUI",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = 100,
-        IgnoreGuiInset = true
+        ResetOnSpawn = false
     })
     
-    -- Proteger GUI si es posible
-    if syn and syn.protect_gui then
-        syn.protect_gui(self.ScreenGui)
-        self.ScreenGui.Parent = CoreGui
-    elseif gethui then
-        self.ScreenGui.Parent = gethui()
+    -- Establecer el parent con la protección adecuada
+    if gethui then
+        self.Container.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(self.Container)
+        self.Container.Parent = CoreGui
     else
-        self.ScreenGui.Parent = Player.PlayerGui
+        self.Container.Parent = CoreGui
     end
     
-    _G.NeonUIObject = self.ScreenGui
+    getgenv().NeonUIObject = self.Container
     
-    -- Mostrar notificación de inicio
-    NotificationSystem:Notify(
-        self.ScreenGui,
-        "NEON RB v" .. self.Version,
-        "Biblioteca inicializada correctamente.",
-        3,
-        "success"
-    )
+    -- Notificación de inicio
+    self:Notify({
+        Title = "NeonUI",
+        Content = "Biblioteca inicializada correctamente v" .. self.Version,
+        Duration = 3
+    })
     
     return self
+end
+
+-- Sistema de notificaciones
+function NeonUI:Notify(options)
+    options = options or {}
+    local notification = {
+        Title = options.Title or "Notification",
+        Content = options.Content or "",
+        Duration = options.Duration or 5
+    }
+    
+    -- Marco principal de notificación
+    local notifFrame = Utility:Create("Frame", {
+        Name = "Notification",
+        BackgroundColor3 = self.Theme.Primary,
+        BorderSizePixel = 0,
+        Position = UDim2.new(1, -20, 1, -20),
+        AnchorPoint = Vector2.new(1, 1),
+        Size = UDim2.new(0, 280, 0, 80),
+        Parent = self.Container
+    })
+    
+    -- Bordes redondeados
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = notifFrame
+    })
+    
+    -- Barra de acento
+    local accentBar = Utility:Create("Frame", {
+        Name = "AccentBar",
+        BackgroundColor3 = self.Theme.Accent,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0, 4, 1, 0),
+        Parent = notifFrame
+    })
+    
+    -- Bordes redondeados para barra
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = accentBar
+    })
+    
+    -- Título
+    local titleLabel = Utility:Create("TextLabel", {
+        Name = "Title",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 8),
+        Size = UDim2.new(1, -50, 0, 24),
+        Font = self.Theme.Font,
+        Text = notification.Title,
+        TextColor3 = self.Theme.Text,
+        TextSize = self.Theme.FontSize + 2,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = notifFrame
+    })
+    
+    -- Contenido
+    local contentLabel = Utility:Create("TextLabel", {
+        Name = "Content",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 32),
+        Size = UDim2.new(1, -24, 0, 40),
+        Font = self.Theme.Font,
+        Text = notification.Content,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextSize = self.Theme.FontSize - 1,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        Parent = notifFrame
+    })
+    
+    -- Botón de cerrar
+    local closeButton = Utility:Create("ImageButton", {
+        Name = "CloseButton",
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -24, 0, 8),
+        Size = UDim2.fromOffset(16, 16),
+        Image = "rbxassetid://7733717447",
+        ImageColor3 = Color3.fromRGB(200, 200, 200),
+        Parent = notifFrame
+    })
+    
+    -- Barra de progreso
+    local progressBar = Utility:Create("Frame", {
+        Name = "ProgressBar",
+        BackgroundColor3 = self.Theme.Accent,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 0, 1, -2),
+        Size = UDim2.new(1, 0, 0, 2),
+        Parent = notifFrame
+    })
+    
+    -- Animación de entrada
+    notifFrame.Position = UDim2.new(1, 300, 1, -20)
+    notifFrame.Visible = true
+    
+    -- Animar entrada
+    Utility:Tween(notifFrame, {Position = UDim2.new(1, -20, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+    
+    -- Barra de progreso
+    Utility:Tween(progressBar, {Size = UDim2.new(0, 0, 0, 2)}, notification.Duration)
+    
+    -- Evento de cerrar
+    closeButton.MouseButton1Click:Connect(function()
+        Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+        task.wait(0.3)
+        notifFrame:Destroy()
+    end)
+    
+    -- Auto cerrar después de la duración
+    task.delay(notification.Duration, function()
+        if notifFrame and notifFrame.Parent then
+            Utility:Tween(notifFrame, {Position = UDim2.new(1, 300, 1, -20)}, 0.3, Enum.EasingStyle.Quint)
+            task.wait(0.3)
+            notifFrame:Destroy()
+        end
+    end)
+    
+    return notifFrame
+end
+
+-- Diálogo modal
+function NeonUI:Dialog(options)
+    options = options or {}
+    local dialog = {
+        Title = options.Title or "Dialog",
+        Content = options.Content or "",
+        Buttons = options.Buttons or {{Title = "OK", Callback = function() end}}
+    }
+    
+    -- Overlay de fondo
+    local overlay = Utility:Create("Frame", {
+        Name = "DialogOverlay",
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        BorderSizePixel = 0,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ZIndex = 100,
+        Parent = self.Container
+    })
+    
+    -- Marco de diálogo
+    local dialogFrame = Utility:Create("Frame", {
+        Name = "DialogFrame",
+        BackgroundColor3 = self.Theme.Primary,
+        BorderSizePixel = 0,
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.fromOffset(300, 150),
+        ZIndex = 101,
+        Parent = overlay
+    })
+    
+    -- Bordes redondeados
+    Utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = dialogFrame
+    })
+    
+    -- Título
+    local titleLabel = Utility:Create("TextLabel", {
+        Name = "Title",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(15, 10),
+        Size = UDim2.new(1, -30, 0, 24),
+        Font = self.Theme.Font,
+        Text = dialog.Title,
+        TextColor3 = self.Theme.Text,
+        TextSize = self.Theme.FontSize + 2,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Separador
+    local separator = Utility:Create("Frame", {
+        Name = "Separator",
+        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 15, 0, 40),
+        Size = UDim2.new(1, -30, 0, 1),
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Contenido
+    local contentLabel = Utility:Create("TextLabel", {
+        Name = "Content",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(15, 50),
+        Size = UDim2.new(1, -30, 0, 60),
+        Font = self.Theme.Font,
+        Text = dialog.Content,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextSize = self.Theme.FontSize,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Contenedor de botones
+    local buttonContainer = Utility:Create("Frame", {
+        Name = "ButtonContainer",
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 0, 1, -50),
+        Size = UDim2.new(1, 0, 0, 40),
+        ZIndex = 102,
+        Parent = dialogFrame
+    })
+    
+    -- Layout para botones
+    Utility:Create("UIListLayout", {
+        Padding = UDim.new(0, 10),
+        FillDirection = Enum.FillDirection.Horizontal,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = buttonContainer
+    })
+    
+    -- Crear botones
+    for i, buttonInfo in ipairs(dialog.Buttons) do
+        local button = Utility:Create("TextButton", {
+            Name = "Button_" .. i,
+            BackgroundColor3 = self.Theme.Accent,
+            BorderSizePixel = 0,
+            Size = UDim2.new(0, 100, 0, 30),
+            Font = self.Theme.Font,
+            Text = buttonInfo.Title,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = self.Theme.FontSize,
+            ZIndex = 103,
+            Parent = buttonContainer
+        })
+        
+        -- Bordes redondeados para botón
+        Utility:Create("UICorner", {
+            CornerRadius = UDim.new(0, 4),
+            Parent = button
+        })
+        
+        -- Evento de clic
+        button.MouseButton1Click:Connect(function()
+            -- Ejecutar callback
+            if buttonInfo.Callback then
+                buttonInfo.Callback()
+            end
+            
+            -- Animación de cierre
+            Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.3)
+            Utility:Tween(overlay, {BackgroundTransparency = 1}, 0.3)
+            task.wait(0.3)
+            overlay:Destroy()
+        end)
+    end
+    
+    -- Animación de apertura
+    dialogFrame.Size = UDim2.fromOffset(0, 0)
+    overlay.BackgroundTransparency = 1
+    Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(300, 150)}, 0.3)
+    Utility:Tween(overlay, {BackgroundTransparency = 0.5}, 0.3)
+    
+    return dialog
+end
+
+-- Obtener icono desde nombre
+function NeonUI:GetIcon(name)
+    local icons = {
+        home = "7733960981",
+        settings = "7734053495",
+        user = "7743871002",
+        star = "7734068321",
+        warning = "7734036668",
+        info = "7734010138",
+        plus = "7734056604",
+        minus = "7734062493",
+        search = "7734093360",
+        box = "7734155436",
+        folder = "7734172055",
+        chevron = "7734238686",
+        gear = "7734053495",
+        bell = "7743855514",
+        heart = "7733718216",
+        bookmark = "7743895266",
+        moon = "7743878047",
+        sun = "7733920644",
+        cloud = "7733821549",
+        globe = "7733778299",
+        lock = "7733885257",
+        unlock = "7733726102",
+        key = "7733832079",
+        flag = "7733777611",
+        trash = "7733673941",
+        edit = "7733799486",
+        pencil = "7733696245",
+        image = "7733946818",
+        video = "7733709455",
+        music = "7733656793",
+        mic = "7733839766",
+        phone = "7733790917",
+        mail = "7733889662",
+        send = "7733745099",
+        code = "7733944826",
+        terminal = "7733794336",
+        link = "7733865183",
+        coffee = "7733951482",
+        file = "7733791228",
+        archive = "7743824158",
+        layers = "7733859130",
+        compass = "7733857969",
+        map = "7733837011",
+        ["map-pin"] = "7733824551",
+        award = "7743823882",
+        upload = "7734172322",
+        download = "7733982464",
+        camera = "7733930958",
+        play = "7743985991",
+        pause = "7733904064",
+        stop = "7733754058",
+        message = "7733873146",
+        users = "7734095912",
+        activity = "7743823554",
+        alert = "7743824019",
+        eye = "7733760318",
+        ["eye-off"] = "7743877488",
+        gitlab = "7733897366",
+        github = "7733873313",
+        calendar = "7733812303",
+        paperclip = "7733903117",
+        scissors = "7734142322",
+        tag = "7734197488",
+        tags = "7733980420",
+        tool = "7733928794",
+        ["bar-chart"] = "7743825153",
+        ["pie-chart"] = "7743883343",
+        ["line-chart"] = "7743880222",
+        zap = "7733679869",
+        check = "7733956746",
+        ["x"] = "7733717447",
+        sliders = "7734176202",
+        target = "7734226711",
+        shield = "7734231071",
+        sword = "7743915270",
+        wifi = "7734114676",
+        bluetooth = "7733768238",
+        share = "7734181035",
+        printer = "7733913543",
+        cpu = "7733929456",
+        speaker = "7734052733",
+        tv = "7733766052",
+        ["log-out"] = "7733978918",
+        ["log-in"] = "7733923449"
+    }
+    
+    return icons[name:lower()] or "7733717447" -- Default to X icon
 end
 
 -- Crear ventana
 function NeonUI:CreateWindow(options)
     options = options or {}
-    
     local window = {
-        Title = options.Title or "NEON RB " .. self.Version,
-        SubTitle = options.SubTitle or "By MRX",
-        ThemeName = options.Theme or "Lava",
-        Size = options.Size or UDim2.fromOffset(500, 350),
+        Title = options.Title or "NeonUI",
+        SubTitle = options.SubTitle or "",
+        Size = options.Size or UDim2.fromOffset(550, 400),
         Position = options.Position or UDim2.fromScale(0.5, 0.5),
-        MinimizeKey = options.MinimizeKey,
+        Theme = options.Theme or "Dark",
         Tabs = {},
-        Elements = {},
+        TabsFrame = nil,
+        TabsContainer = nil,
+        ContentContainer = nil,
         CurrentTab = nil,
-        Flags = {},
-        Minimized = false
+        Settings = {},
+        Flags = {}
     }
     
-    -- Seleccionar tema
-    self.Theme = Themes[window.ThemeName] or Themes.Lava
+    -- Aplicar tema
+    if window.Theme == "Dark" then
+        self.Theme.Primary = Color3.fromRGB(32, 35, 36)
+        self.Theme.Secondary = Color3.fromRGB(50, 55, 56)
+    elseif window.Theme == "Light" then
+        self.Theme.Primary = Color3.fromRGB(240, 240, 240)
+        self.Theme.Secondary = Color3.fromRGB(255, 255, 255)
+        self.Theme.Text = Color3.fromRGB(50, 50, 50)
+    elseif window.Theme == "Midnight" then
+        self.Theme.Primary = Color3.fromRGB(25, 27, 38)
+        self.Theme.Secondary = Color3.fromRGB(35, 38, 50)
+    elseif window.Theme == "Nebula" then
+        self.Theme.Primary = Color3.fromRGB(35, 25, 50)
+        self.Theme.Secondary = Color3.fromRGB(48, 34, 70)
+        self.Theme.Accent = Color3.fromRGB(165, 82, 255)
+    end
     
-    -- Crear el frame principal de la ventana
+    -- Crear ventana principal
     window.Frame = Utility:Create("Frame", {
         Name = "WindowFrame",
-        BackgroundColor3 = self.Theme.bg.dark,
+        BackgroundColor3 = self.Theme.Primary,
         BorderSizePixel = 0,
-        Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset - window.Size.X.Offset/2, 
-                            window.Position.Y.Scale, window.Position.Y.Offset - window.Size.Y.Offset/2),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
         Size = window.Size,
-        ClipsDescendants = true,
-        Active = true,
-        Parent = self.ScreenGui,
-        ZIndex = 10
+        Parent = self.Container
     })
     
-    -- Esquinas redondeadas
+    -- Bordes redondeados
     Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 12),
+        CornerRadius = self.Theme.CornerRadius,
         Parent = window.Frame
     })
     
-    -- Crear fondo de lava
-    Effects:CreateLavaBackground(window.Frame, self.Theme)
-    
-    -- Crear barra de título
+    -- Barra de título
     window.TitleBar = Utility:Create("Frame", {
         Name = "TitleBar",
-        BackgroundColor3 = self.Theme.accent.tertiary,
+        BackgroundColor3 = self.Theme.Secondary,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 40),
-        Parent = window.Frame,
-        ZIndex = 12
+        Size = UDim2.new(1, 0, 0, 36),
+        Parent = window.Frame
     })
     
-    -- Esquinas de la barra de título
+    -- Bordes redondeados para la barra de título
     Utility:Create("UICorner", {
-        CornerRadius = UDim.new(0, 12),
+        CornerRadius = UDim.new(0, 8),
         Parent = window.TitleBar
     })
     
-    -- Solución para las esquinas inferiores
-    Utility:Create("Frame", {
-        Name = "BottomFixFrame",
-        BackgroundColor3 = window.TitleBar.BackgroundColor3,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 1, -12),
-        Size = UDim2.new(1, 0, 0, 12),
-        ZIndex = window.TitleBar.ZIndex,
-        Parent = window.TitleBar
-    })
-    
-    -- Gradiente para la barra de título
-    local titleGradient = Utility:Create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, self.Theme.accent.tertiary:Lerp(self.Theme.accent.secondary, 0.3)),
-            ColorSequenceKeypoint.new(0.3, self.Theme.accent.secondary:Lerp(self.Theme.accent.primary, 0.2)),
-            ColorSequenceKeypoint.new(0.7, self.Theme.accent.secondary),
-            ColorSequenceKeypoint.new(1, self.Theme.accent.tertiary:Lerp(self.Theme.accent.secondary, 0.3))
-        }),
-        Parent = window.TitleBar
-    })
-    
-    -- Animar el gradiente
-    spawn(function()
-        local offset = 0
-        while window.TitleBar and window.TitleBar.Parent do
-            offset = offset + 0.005
-            if offset > 1 then offset = 0 end
-            titleGradient.Offset = Vector2.new(offset, 0)
-            wait(0.01)
-        end
-    end)
-    
-    -- Texto del título
+    -- Título
     window.TitleText = Utility:Create("TextLabel", {
         Name = "Title",
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(15, 0),
-        Size = UDim2.new(1, -120, 1, 0),
-        Font = Enum.Font.GothamBold,
-        Text = "🌋 " .. window.Title,
-        TextColor3 = self.Theme.text.primary,
-        TextSize = 18,
+        Position = UDim2.fromOffset(12, 0),
+        Size = UDim2.new(1, -24, 1, 0),
+        Font = self.Theme.Font,
+        Text = window.Title,
+        TextColor3 = self.Theme.Text,
+        TextSize = self.Theme.FontSize + 2,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 13,
         Parent = window.TitleBar
     })
+    
+    -- Subtítulo
+    if window.SubTitle and window.SubTitle ~= "" then
+        window.SubTitleText = Utility:Create("TextLabel", {
+            Name = "SubTitle",
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0, 12, 0, 20),
+            Size = UDim2.new(1, -24, 0, 20),
+            Font = self.Theme.Font,
+            Text = window.SubTitle,
+            TextColor3 = Color3.fromRGB(180, 180, 180),
+            TextSize = self.Theme.FontSize - 2,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = window.TitleBar
+        })
+        
+        window.TitleText.Position = UDim2.fromOffset(12, 3)
+        window.TitleText.Size = UDim2.new(1, -24, 0, 20)
+    end
     
     -- Botón de cerrar
-    window.CloseButton = Utility:Create("TextButton", {
+    window.CloseButton = Utility:Create("ImageButton", {
         Name = "CloseButton",
-        BackgroundColor3 = self.Theme.status.error,
-        Position = UDim2.new(1, -35, 0.5, -11),
-        Size = UDim2.new(0, 22, 0, 22),
-        Font = Enum.Font.GothamBold,
-        Text = "X",
-        TextColor3 = self.Theme.text.primary,
-        TextSize = 14,
-        AutoButtonColor = false,
-        ZIndex = 13,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -28, 0, 8),
+        Size = UDim2.fromOffset(20, 20),
+        Image = "rbxassetid://7733717447",
+        ImageColor3 = Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
-    })
-    
-    -- Redondear botón
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = window.CloseButton
     })
     
     -- Botón de minimizar
-    window.MinimizeButton = Utility:Create("TextButton", {
+    window.MinimizeButton = Utility:Create("ImageButton", {
         Name = "MinimizeButton",
-        BackgroundColor3 = self.Theme.accent.tertiary,
-        Position = UDim2.new(1, -67, 0.5, -11),
-        Size = UDim2.new(0, 22, 0, 22),
-        Font = Enum.Font.GothamBold,
-        Text = "-",
-        TextColor3 = self.Theme.text.primary,
-        TextSize = 18,
-        AutoButtonColor = false,
-        ZIndex = 13,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -52, 0, 8),
+        Size = UDim2.fromOffset(20, 20),
+        Image = "rbxassetid://7733774602",
+        ImageColor3 = Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
     })
     
-    -- Redondear botón
-    Utility:Create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = window.MinimizeButton
+    -- Funcionalidad de arrastrar ventana
+    Utility:Draggable(window.Frame, window.TitleBar)
+    
+    -- Contenedor de tabs
+    window.TabsFrame = Utility:Create("Frame", {
+        Name = "TabsFrame",
+        BackgroundColor3 = self.Theme.Secondary,
+        BorderSizePixel = 0,
+        Position = UDim2.fromOffset(12, 48),
+        Size = UDim2.new(0, 140, 1, -60),
+        Parent = window.Frame
     })
     
-    -- Efectos de botones
-    window.CloseButton.MouseEnter:Connect(function()
-        Utility:Tween(window.CloseButton, {
-            BackgroundColor3 = self.Theme.status.error:Lerp(Color3.new(1,1,1), 0.2),
-            Size = UDim2.new(0, 24, 0, 24),
-            Position = UDim2.new(1, -36, 0.5, -12)
-        }, 0.3)
-    end)
+    -- Bordes redondeados para tabs
+    Utility:Create("UICorner", {
+        CornerRadius = self.Theme.CornerRadius,
+        Parent = window.TabsFrame
+    })
     
-    window.CloseButton.MouseLeave:Connect(function()
-        Utility:Tween(window.CloseButton, {
-            BackgroundColor3 = self.Theme.status.error,
-            Size = UDim2.new(0, 22, 0, 22),
-            Position = UDim2.new(1, -35, 0.5, -11)
-        }, 0.3)
-    end)
+    -- ScrollFrame para tabs
+    window.TabsScrollFrame = Utility:Create("ScrollingFrame", {
+        Name = "TabsScrollFrame",
+        Active = true,
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Position = UDim2.fromOffset(0, 10),
+        Size = UDim2.new(1, 0, 1, -20),
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        ScrollBarThickness = 4,
+        ScrollBarImageColor3 = self.Theme.Accent,
+        Parent = window.TabsFrame
+    })
     
-    window.MinimizeButton.MouseEnter:Connect(function()
-        Utility:Tween(window.MinimizeButton, {
-            BackgroundColor3 = self.Theme.accent.tertiary:Lerp(Color3.new(1,1,1), 0.2),
-            Size = UDim2.new(0, 24, 0, 24),
-            Position = UDim2.new(1, -68, 0.5, -12)
-        }, 0.3)
-    end)
+    -- Lista de tabs
+    Utility:Create("UIListLayout", {
+        Padding = UDim.new(0, 5),
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = window.TabsScrollFrame
+    })
     
-    window.MinimizeButton.MouseLeave:Connect(function()
-        Utility:Tween(window.MinimizeButton, {
-            BackgroundColor3 = self.Theme.accent.tertiary,
-            Size = UDim2.new(0, 22, 0, 22),
-            Position = UDim2.new(1, -67, 0.5, -11)
-        }, 0.3)
-    end)
+    -- Padding para tabs
+    Utility:Create("UIPadding", {
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10),
+        PaddingTop = UDim.new(0, 5),
+        PaddingBottom = UDim.new(0, 5),
+        Parent = window.TabsScrollFrame
+    })
+    
+    -- Contenedor de contenido
+    window.ContentFrame = Utility:Create("Frame", {
+        Name = "ContentFrame",
+        BackgroundColor3 = self.Theme.Secondary,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 164, 0, 48),
+        Size = UDim2.new(1, -176, 1, -60),
+        Parent = window.Frame
+    })
+    
+    -- Bordes redondeados para contenido
+    Utility:Create("UICorner", {
+        CornerRadius = self.Theme.CornerRadius,
+        Parent = window.ContentFrame
+    })
     
     -- Funcionalidad de los botones
     window.CloseButton.MouseButton1Click:Connect(function()
-        Utility:Tween(window.Frame, {
-            Size = UDim2.fromOffset(0, 0),
-            Position = UDim2.new(window.Position.X.Scale, window.Position.X.Offset, 
-                               window.Position.Y.Scale, window.Position.Y.Offset)
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        
-        wait(0.5)
-        if self.ScreenGui then
-            self.ScreenGui:Destroy()
-            _G.NeonUIObject = nil
-        end
+        Utility:Tween(window.Frame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.25)
+        task.wait(0.25)
+        self.Container:Destroy()
     end)
     
+    local minimized = false
     window.MinimizeButton.MouseButton1Click:Connect(function()
-        window:Minimize()
+        minimized = not minimized
+        local size = minimized and UDim2.new(1, 0, 0, 36) or window.Size
+        Utility:Tween(window.Frame, {Size = size}, 0.25)
     end)
-    
-    -- Contenedor de tabs
-    window.TabContainer = Utility:Create("Frame", {
-        Name = "TabContainer",
-        BackgroundColor3 = self.Theme.bg.dark,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 0, 40),
-        Size = UDim2.new(0, 120, 1, -40),
-        ZIndex = 11,
-        Parent = window.Frame
-    })
-    
-    -- ScrollFrame para los tabs
-    window.TabScroll = Utility:Create("ScrollingFrame", {
-        Name = "TabScroll",
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 0, 5),
-        Size = UDim2.new(1, 0, 1, -10),
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        ScrollBarThickness = 4,
-        ScrollBarImageColor3 = self.Theme.accent.primary,
-        ZIndex = 11,
-        Parent = window.TabContainer
-    })
-    
-    -- Layout para los tabs
-    local tabsLayout = Utility:Create("UIListLayout", {
-        FillDirection = Enum.FillDirection.Vertical,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 10),
-        Parent = window.TabScroll
-    })
-    
-    -- Padding para los tabs
-    Utility:Create("UIPadding", {
-        PaddingTop = UDim.new(0, 10),
-        Parent = window.TabScroll
-    })
-    
-    -- Actualizar CanvasSize automáticamente
-    tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        window.TabScroll.CanvasSize = UDim2.new(0, 0, 0, tabsLayout.AbsoluteContentSize.Y + 20)
-    end)
-    
-    -- Contenedor de contenido
-    window.ContentContainer = Utility:Create("Frame", {
-        Name = "ContentContainer",
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 120, 0, 40),
-        Size = UDim2.new(1, -120, 1, -40),
-        ZIndex = 11,
-        Parent = window.Frame
-    })
-    
-    -- Hacer arrastrable
-    Utility:MakeDraggable(window.Frame, window.TitleBar)
     
     -- Métodos de ventana
-    
-    -- Minimizar ventana
-    function window:Minimize()
-        if self.Minimized then
-            -- Maximizar
-            self.Minimized = false
-            
-            Utility:Tween(self.Frame, {
-                Size = window.Size
-            }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        else
-            -- Minimizar
-            self.Minimized = true
-            
-            Utility:Tween(self.Frame, {
-                Size = UDim2.new(window.Size.X.Scale, window.Size.X.Offset, 0, 40)
-            }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        end
-    end
-    
-    -- Añadir pestaña
     function window:AddTab(options)
         options = options or {}
         local tab = {
-            Name = options.Title or "Tab",
+            Title = options.Title or "Tab",
             Icon = options.Icon,
             Sections = {},
-            Elements = {},
-            Visible = false,
-            Order = options.Order or (#self.Tabs + 1)
+            Elements = {}
         }
         
         -- Botón del tab
         tab.Button = Utility:Create("TextButton", {
-            Name = tab.Name .. "Tab",
-            BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-            BackgroundTransparency = 0.2,
-            BorderSizePixel = 0,
-            Size = UDim2.new(0, 110, 0, 42),
-            Font = Enum.Font.GothamBold,
-            Text = tab.Name,
-            TextColor3 = NeonUI.Theme.text.secondary,
-            TextSize = 14,
+            Name = options.Title .. "Tab",
             AutoButtonColor = false,
-            LayoutOrder = tab.Order,
-            ZIndex = 12,
-            Parent = self.TabScroll
+            BackgroundColor3 = NeonUI.Theme.Primary,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 36),
+            Font = NeonUI.Theme.Font,
+            Text = "",
+            TextColor3 = NeonUI.Theme.Text,
+            TextSize = NeonUI.Theme.FontSize,
+            Parent = window.TabsScrollFrame
         })
         
-        -- Esquinas redondeadas
+        -- Bordes redondeados para botón de tab
         Utility:Create("UICorner", {
-            CornerRadius = UDim.new(0, 8),
+            CornerRadius = UDim.new(0, 6),
             Parent = tab.Button
         })
         
-        -- Efecto de borde
-        tab.Border = Utility:Create("UIStroke", {
-            Color = NeonUI.Theme.accent.tertiary,
-            Thickness = 1,
-            Transparency = 0.7,
-            Parent = tab.Button
-        })
-        
-        -- Icono (si se proporciona)
+        -- Icono del tab (si existe)
         if tab.Icon then
-            -- Container para el icono
-            local iconHolder = Utility:Create("Frame", {
-                Name = "IconHolder",
-                BackgroundColor3 = NeonUI.Theme.accent.tertiary,
-                BackgroundTransparency = 0.8,
-                Position = UDim2.new(0, 10, 0.5, -12),
-                Size = UDim2.new(0, 24, 0, 24),
-                ZIndex = 13,
+            tab.IconImage = Utility:Create("ImageLabel", {
+                Name = "Icon",
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(10, 8),
+                Size = UDim2.fromOffset(20, 20),
+                Image = (tab.Icon:find("rbxassetid://") and tab.Icon) or ("rbxassetid://" .. NeonUI:GetIcon(tab.Icon)),
+                ImageColor3 = NeonUI.Theme.Text,
                 Parent = tab.Button
             })
             
-            -- Redondear el holder
-            Utility:Create("UICorner", {
-                CornerRadius = UDim.new(1, 0),
-                Parent = iconHolder
-            })
-            
-            -- Icono
-            tab.Icon = Utility:Create("ImageLabel", {
-                Name = "Icon",
+            tab.TitleLabel = Utility:Create("TextLabel", {
+                Name = "Title",
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 2, 0, 2),
-                Size = UDim2.new(0, 20, 0, 20),
-                Image = "rbxassetid://" .. (type(options.Icon) == "string" and (Icons[options.Icon] or options.Icon) or "9835862639"),
-                ImageColor3 = NeonUI.Theme.text.secondary,
-                ZIndex = 14,
-                Parent = iconHolder
+                Position = UDim2.fromOffset(36, 0),
+                Size = UDim2.new(1, -46, 1, 0),
+                Font = NeonUI.Theme.Font,
+                Text = tab.Title,
+                TextColor3 = NeonUI.Theme.Text,
+                TextSize = NeonUI.Theme.FontSize,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = tab.Button
             })
-            
-            -- Ajustar texto
-            tab.Button.TextXAlignment = Enum.TextXAlignment.Right
-            tab.Button.Text = tab.Name .. "      "
+        else
+            tab.TitleLabel = Utility:Create("TextLabel", {
+                Name = "Title",
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(10, 0),
+                Size = UDim2.new(1, -20, 1, 0),
+                Font = NeonUI.Theme.Font,
+                Text = tab.Title,
+                TextColor3 = NeonUI.Theme.Text,
+                TextSize = NeonUI.Theme.FontSize,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = tab.Button
+            })
         end
         
-        -- Indicador de selección
-        tab.SelectionIndicator = Utility:Create("Frame", {
-            Name = "SelectionIndicator",
-            BackgroundColor3 = NeonUI.Theme.accent.primary,
-            BorderSizePixel = 0,
-            Position = UDim2.new(0, -2, 0.5, -15),
-            Size = UDim2.new(0, 4, 0, 30),
-            Visible = false,
-            ZIndex = 13,
-            Parent = tab.Button
-        })
-        
-        -- Esquinas redondeadas para el indicador
-        Utility:Create("UICorner", {
-            CornerRadius = UDim.new(0, 2),
-            Parent = tab.SelectionIndicator
-        })
-        
-        -- Resplandor para el indicador
-        Effects:CreateGlow(tab.SelectionIndicator, NeonUI.Theme.accent.primary, 2, 12, 0.7)
-        
-        -- Crear contenedor de página
-        tab.Page = Utility:Create("ScrollingFrame", {
-            Name = tab.Name .. "Page",
+        -- Contenedor de contenido del tab
+        tab.Container = Utility:Create("ScrollingFrame", {
+            Name = options.Title .. "Container",
+            Active = true,
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 10, 0, 10),
-            Size = UDim2.new(1, -20, 1, -20),
+            Position = UDim2.fromOffset(0, 0),
+            Size = UDim2.new(1, 0, 1, 0),
             CanvasSize = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
             ScrollBarThickness = 4,
-            ScrollingDirection = Enum.ScrollingDirection.Y,
-            ScrollBarImageColor3 = NeonUI.Theme.accent.primary,
+            ScrollBarImageColor3 = NeonUI.Theme.Accent,
             Visible = false,
-            ZIndex = 12,
-            Parent = self.ContentContainer
+            Parent = window.ContentFrame
         })
         
-        -- Layout para elementos
-        local pageLayout = Utility:Create("UIListLayout", {
-            FillDirection = Enum.FillDirection.Vertical,
+        -- Lista para elementos del tab
+        Utility:Create("UIListLayout", {
+            Padding = UDim.new(0, 8),
             HorizontalAlignment = Enum.HorizontalAlignment.Center,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 10),
-            Parent = tab.Page
+            Parent = tab.Container
         })
         
-        -- Padding
+        -- Padding para elementos
         Utility:Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
             PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10),
-            PaddingLeft = UDim.new(0, 5),
-            PaddingRight = UDim.new(0, 5),
-            Parent = tab.Page
+            Parent = tab.Container
         })
         
-        -- Actualizar CanvasSize automáticamente
-        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            tab.Page.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
-        end)
-        
-        -- Evento de hover
-        tab.Button.MouseEnter:Connect(function()
-            if self.CurrentTab and self.CurrentTab.Name == tab.Name then return end
-            
-            Utility:Tween(tab.Button, {
-                BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.3),
-                BackgroundTransparency = 0,
-                TextColor3 = NeonUI.Theme.text.primary
-            }, 0.3)
-            
-            Utility:Tween(tab.Border, {
-                Color = NeonUI.Theme.accent.primary,
-                Transparency = 0.5
-            }, 0.3)
-            
-            if tab.Icon and tab.Icon.Parent then
-                Utility:Tween(tab.Icon.Parent, {
-                    BackgroundColor3 = NeonUI.Theme.accent.primary,
-                    BackgroundTransparency = 0.7
-                }, 0.3)
-                
-                Utility:Tween(tab.Icon, {
-                    ImageColor3 = NeonUI.Theme.text.primary
-                }, 0.3)
-            end
-        end)
-        
-        tab.Button.MouseLeave:Connect(function()
-            if self.CurrentTab and self.CurrentTab.Name == tab.Name then return end
-            
-            Utility:Tween(tab.Button, {
-                BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-                BackgroundTransparency = 0.2,
-                TextColor3 = NeonUI.Theme.text.secondary
-            }, 0.3)
-            
-            Utility:Tween(tab.Border, {
-                Color = NeonUI.Theme.accent.tertiary,
-                Transparency = 0.7
-            }, 0.3)
-            
-            if tab.Icon and tab.Icon.Parent then
-                Utility:Tween(tab.Icon.Parent, {
-                    BackgroundColor3 = NeonUI.Theme.accent.tertiary,
-                    BackgroundTransparency = 0.8
-                }, 0.3)
-                
-                Utility:Tween(tab.Icon, {
-                    ImageColor3 = NeonUI.Theme.text.secondary
-                }, 0.3)
-            end
-        end)
-        
-        -- Evento de click
+        -- Seleccionar tab al hacer clic
         tab.Button.MouseButton1Click:Connect(function()
-            self:SelectTab(tab.Name)
+            window:SelectTab(tab)
         end)
+        
+        -- Añadir tab a la lista
+        table.insert(window.Tabs, tab)
+        
+        -- Auto-seleccionar el primer tab
+        if #window.Tabs == 1 then
+            window:SelectTab(tab)
+        end
         
         -- Métodos del tab
         function tab:AddSection(options)
@@ -1239,283 +924,736 @@ function NeonUI:CreateWindow(options)
             -- Contenedor de sección
             section.Container = Utility:Create("Frame", {
                 Name = section.Title .. "Section",
-                BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-                BackgroundTransparency = 0.1,
+                BackgroundColor3 = NeonUI.Theme.Primary,
                 BorderSizePixel = 0,
-                Size = UDim2.new(1, -10, 0, 36),
-                ZIndex = 13,
-                Parent = tab.Page
+                Size = UDim2.new(1, 0, 0, 36),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                Parent = tab.Container
             })
             
-            -- Esquinas redondeadas
+            -- Bordes redondeados para sección
             Utility:Create("UICorner", {
-                CornerRadius = UDim.new(0, 8),
+                CornerRadius = UDim.new(0, 6),
                 Parent = section.Container
             })
             
-            -- Borde brillante
-            Utility:Create("UIStroke", {
-                Color = NeonUI.Theme.accent.primary,
-                Transparency = 0.7,
-                Thickness = 1.5,
-                Parent = section.Container
-            })
-            
-            -- Título
+            -- Título de sección
             section.TitleLabel = Utility:Create("TextLabel", {
                 Name = "Title",
                 BackgroundTransparency = 1,
-                Position = UDim2.fromOffset(14, 10),
-                Size = UDim2.new(1, -120, 0, 24),
-                Font = Enum.Font.GothamBold,
+                Position = UDim2.fromOffset(10, 5),
+                Size = UDim2.new(1, -20, 0, 26),
+                Font = NeonUI.Theme.Font,
                 Text = section.Title,
-                TextColor3 = NeonUI.Theme.text.primary,
-                TextSize = 16,
+                TextColor3 = NeonUI.Theme.Text,
+                TextSize = NeonUI.Theme.FontSize,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 14,
                 Parent = section.Container
             })
             
-            -- Gradiente para el título
-            Utility:Create("UIGradient", {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, NeonUI.Theme.text.primary),
-                    ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.primary)
-                }),
-                Parent = section.TitleLabel
+            -- Separador
+            section.Separator = Utility:Create("Frame", {
+                Name = "Separator",
+                BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                BorderSizePixel = 0,
+                Position = UDim2.new(0, 10, 0, 30),
+                Size = UDim2.new(1, -20, 0, 1),
+                Parent = section.Container
             })
             
-            -- Métodos de la sección
-            function section:AddButton(title, description, callback)
-                callback = callback or function() end
-                
+            -- Contenedor de elementos
+            section.ElementsContainer = Utility:Create("Frame", {
+                Name = "ElementsContainer",
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Position = UDim2.fromOffset(0, 40),
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                Parent = section.Container
+            })
+            
+            -- Lista para elementos
+            Utility:Create("UIListLayout", {
+                Padding = UDim.new(0, 8),
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = section.ElementsContainer
+            })
+            
+            -- Padding para elementos
+            Utility:Create("UIPadding", {
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+                PaddingTop = UDim.new(0, 5),
+                PaddingBottom = UDim.new(0, 10),
+                Parent = section.ElementsContainer
+            })
+            
+            -- Añadir sección a la lista
+            table.insert(tab.Sections, section)
+            
+            -- Botón
+            function section:AddButton(options)
+                options = options or {}
                 local button = {
-                    Title = title or "Button",
-                    Description = description,
-                    Callback = callback
+                    Title = options.Title or "Button",
+                    Description = options.Description,
+                    Callback = options.Callback or function() end
                 }
                 
-                -- Calcular altura del botón basado en descripción
-                local buttonHeight = description and 80 or 60
+                -- Altura del botón (dependiendo de si tiene descripción)
+                local buttonHeight = button.Description and 50 or 36
                 
                 -- Contenedor del botón
                 button.Container = Utility:Create("Frame", {
-                    Name = "Button_" .. title,
-                    BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-                    BackgroundTransparency = 0.1,
+                    Name = button.Title .. "Button",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
                     BorderSizePixel = 0,
-                    Size = UDim2.new(1, -10, 0, buttonHeight),
-                    ZIndex = 13,
-                    Parent = tab.Page
+                    Size = UDim2.new(1, 0, 0, buttonHeight),
+                    Parent = section.ElementsContainer
                 })
                 
-                -- Esquinas redondeadas
+                -- Bordes redondeados
                 Utility:Create("UICorner", {
-                    CornerRadius = UDim.new(0, 8),
+                    CornerRadius = UDim.new(0, 6),
                     Parent = button.Container
                 })
                 
-                -- Borde brillante
-                Utility:Create("UIStroke", {
-                    Color = NeonUI.Theme.accent.primary,
-                    Transparency = 0.7,
-                    Thickness = 1.5,
-                    Parent = button.Container
-                })
-                
-                -- Título
-                button.TitleLabel = Utility:Create("TextLabel", {
-                    Name = "Title",
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(14, 10),
-                    Size = UDim2.new(1, -120, 0, 24),
-                    Font = Enum.Font.GothamBold,
+                -- Botón interactivo
+                button.ButtonElement = Utility:Create("TextButton", {
+                    Name = "ButtonElement",
+                    BackgroundColor3 = NeonUI.Theme.Accent,
+                    BorderSizePixel = 0,
+                    Position = UDim2.new(1, -105, 0, 5),
+                    Size = UDim2.new(0, 95, 0, 26),
+                    Font = NeonUI.Theme.Font,
                     Text = button.Title,
-                    TextColor3 = NeonUI.Theme.text.primary,
-                    TextSize = 16,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 14,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextSize = NeonUI.Theme.FontSize,
                     Parent = button.Container
                 })
                 
-                -- Gradiente para el título
-                Utility:Create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.text.primary),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.primary)
-                    }),
-                    Parent = button.TitleLabel
+                -- Bordes redondeados para botón
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 4),
+                    Parent = button.ButtonElement
                 })
                 
-                -- Descripción
-                if description and description ~= "" then
+                -- Título y descripción
+                if button.Description then
+                    button.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -120, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = button.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = button.Container
+                    })
+                    
                     button.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
                         BackgroundTransparency = 1,
-                        Position = UDim2.fromOffset(14, 38),
-                        Size = UDim2.new(1, -120, 0, 34),
-                        Font = Enum.Font.Gotham,
-                        Text = description,
-                        TextColor3 = NeonUI.Theme.text.secondary,
-                        TextSize = 14,
-                        TextWrapped = true,
+                        Position = UDim2.fromOffset(10, 25),
+                        Size = UDim2.new(1, -120, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = button.Description,
+                        TextColor3 = Color3.fromRGB(180, 180, 180),
+                        TextSize = NeonUI.Theme.FontSize - 2,
                         TextXAlignment = Enum.TextXAlignment.Left,
-                        TextYAlignment = Enum.TextYAlignment.Top,
-                        ZIndex = 14,
+                        Parent = button.Container
+                    })
+                else
+                    button.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 0),
+                        Size = UDim2.new(1, -120, 1, 0),
+                        Font = NeonUI.Theme.Font,
+                        Text = button.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = button.Container
                     })
                 end
                 
-                -- Botón clickeable
-                button.ClickButton = Utility:Create("TextButton", {
-                    Name = "ClickButton",
-                    BackgroundColor3 = NeonUI.Theme.accent.tertiary,
-                    Position = UDim2.new(1, -110, 0.5, -22),
-                    Size = UDim2.new(0, 90, 0, 44),
-                    Font = Enum.Font.GothamBold,
-                    Text = "CLICK",
-                    TextColor3 = NeonUI.Theme.text.primary,
-                    TextSize = 16,
-                    AutoButtonColor = false,
-                    ZIndex = 14,
-                    Parent = button.Container
-                })
-                
-                -- Esquinas redondeadas
-                Utility:Create("UICorner", {
-                    CornerRadius = UDim.new(0, 8),
-                    Parent = button.ClickButton
-                })
-                
-                -- Gradiente para el botón
-                local clickGradient = Utility:Create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.accent.tertiary),
-                        ColorSequenceKeypoint.new(0.5, NeonUI.Theme.accent.tertiary:Lerp(NeonUI.Theme.accent.secondary, 0.5)),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.tertiary)
-                    }),
-                    Rotation = 45,
-                    Parent = button.ClickButton
-                })
-                
-                -- Animar el gradiente
-                spawn(function()
-                    local offset = 0
-                    while button.ClickButton.Parent do
-                        offset = offset + 0.005
-                        if offset > 1 then offset = 0 end
-                        clickGradient.Offset = Vector2.new(offset, 0)
-                        wait(0.016)
-                    end
+                -- Efecto al hacer clic
+                button.ButtonElement.MouseButton1Click:Connect(function()
+                    Utility:Ripple(button.ButtonElement)
+                    
+                    -- Animación de pulsación
+                    Utility:Tween(button.ButtonElement, {Size = UDim2.new(0, 90, 0, 24)}, 0.1)
+                    task.wait(0.1)
+                    Utility:Tween(button.ButtonElement, {Size = UDim2.new(0, 95, 0, 26)}, 0.1)
+                    
+                    task.spawn(button.Callback)
                 end)
                 
-                -- Efectos de hover
-                local isHovering = false
-                
-                button.ClickButton.MouseEnter:Connect(function()
-                    isHovering = true
-                    
-                    Utility:Tween(button.ClickButton, {
-                        Size = UDim2.new(0, 96, 0, 48),
-                        Position = UDim2.new(1, -113, 0.5, -24),
-                        BackgroundColor3 = NeonUI.Theme.accent.secondary
-                    }, 0.3, Enum.EasingStyle.Back)
-                    
-                    clickGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.accent.secondary),
-                        ColorSequenceKeypoint.new(0.5, NeonUI.Theme.accent.primary),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.secondary)
-                    })
-                    
-                    Effects:CreateParticles(button.ClickButton, NeonUI.Theme.accent.glow, 5, {2, 4}, 0.5)
-                end)
-                
-                button.ClickButton.MouseLeave:Connect(function()
-                    isHovering = false
-                    
-                    Utility:Tween(button.ClickButton, {
-                        Size = UDim2.new(0, 90, 0, 44),
-                        Position = UDim2.new(1, -110, 0.5, -22),
-                        BackgroundColor3 = NeonUI.Theme.accent.tertiary
-                    }, 0.3, Enum.EasingStyle.Back)
-                    
-                    clickGradient.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.accent.tertiary),
-                        ColorSequenceKeypoint.new(0.5, NeonUI.Theme.accent.tertiary:Lerp(NeonUI.Theme.accent.secondary, 0.5)),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.tertiary)
-                    })
-                    
-                    -- Limpiar partículas
-                    for _, child in pairs(button.ClickButton:GetChildren()) do
-                        if child.Name == "ParticleContainer" then
-                            child:Destroy()
-                        end
-                    end
-                end)
-                
-                -- Evento de clic
-                button.ClickButton.MouseButton1Click:Connect(function()
-                    -- Efecto de clic
-                    Utility:Tween(button.ClickButton, {
-                        Size = UDim2.new(0, 86, 0, 40),
-                        Position = UDim2.new(1, -108, 0.5, -20)
-                    }, 0.1)
-                    
-                    -- Ripple effect
-                    Utility:Ripple(button.ClickButton, NeonUI.Theme.accent.glow)
-                    
-                    -- Restaurar tamaño después del clic
-                    wait(0.1)
-                    Utility:Tween(button.ClickButton, {
-                        Size = isHovering and UDim2.new(0, 96, 0, 48) or UDim2.new(0, 90, 0, 44),
-                        Position = isHovering and UDim2.new(1, -113, 0.5, -24) or UDim2.new(1, -110, 0.5, -22)
-                    }, 0.2)
-                    
-                    -- Ejecutar callback
-                    pcall(callback)
-                end)
-                
+                -- Añadir a la lista de elementos
                 table.insert(section.Elements, button)
-                table.insert(tab.Elements, button)
                 
                 return button
             end
             
-            function section:AddParagraph(title, content)
-                local paragraph = {
-                    Title = title or "Paragraph",
-                    Content = content or ""
+            -- Toggle (Interruptor)
+            function section:AddToggle(options)
+                options = options or {}
+                local toggle = {
+                    Title = options.Title or "Toggle",
+                    Description = options.Description,
+                    Default = options.Default or false,
+                    Flag = options.Flag,
+                    Callback = options.Callback or function() end,
+                    Value = options.Default or false
                 }
                 
-                -- Calcular altura basada en el contenido
-                local textHeight = 40 -- altura mínima
-                if content then
-                    local lines = math.ceil(string.len(content) / 30)
-                    textHeight = textHeight + lines * 20
+                -- Registrar flag si existe
+                if toggle.Flag then
+                    window.Flags[toggle.Flag] = toggle.Value
                 end
+                
+                -- Altura del toggle (dependiendo de si tiene descripción)
+                local toggleHeight = toggle.Description and 50 or 36
+                
+                -- Contenedor del toggle
+                toggle.Container = Utility:Create("Frame", {
+                    Name = toggle.Title .. "Toggle",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, toggleHeight),
+                    Parent = section.ElementsContainer
+                })
+                
+                -- Bordes redondeados
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = toggle.Container
+                })
+                
+                -- Título y descripción
+                if toggle.Description then
+                    toggle.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -60, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = toggle.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = toggle.Container
+                    })
+                    
+                    toggle.DescriptionLabel = Utility:Create("TextLabel", {
+                        Name = "Description",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 25),
+                        Size = UDim2.new(1, -60, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = toggle.Description,
+                        TextColor3 = Color3.fromRGB(180, 180, 180),
+                        TextSize = NeonUI.Theme.FontSize - 2,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = toggle.Container
+                    })
+                else
+                    toggle.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 0),
+                        Size = UDim2.new(1, -60, 1, 0),
+                        Font = NeonUI.Theme.Font,
+                        Text = toggle.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = toggle.Container
+                    })
+                end
+                
+                -- Toggle switch
+                toggle.Switch = Utility:Create("Frame", {
+                    Name = "Switch",
+                    BackgroundColor3 = toggle.Value and NeonUI.Theme.Accent or Color3.fromRGB(100, 100, 100),
+                    BorderSizePixel = 0,
+                    Position = UDim2.new(1, -50, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Size = UDim2.fromOffset(36, 18),
+                    Parent = toggle.Container
+                })
+                
+                -- Bordes redondeados para switch
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(1, 0),
+                    Parent = toggle.Switch
+                })
+                
+                -- Círculo del switch
+                toggle.Circle = Utility:Create("Frame", {
+                    Name = "Circle",
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    Position = UDim2.new(0, toggle.Value and 20 or 2, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Size = UDim2.fromOffset(14, 14),
+                    Parent = toggle.Switch
+                })
+                
+                -- Bordes redondeados para círculo
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(1, 0),
+                    Parent = toggle.Circle
+                })
+                
+                -- Botón para interactuar
+                toggle.Button = Utility:Create("TextButton", {
+                    Name = "ToggleButton",
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Text = "",
+                    Parent = toggle.Container
+                })
+                
+                -- Función para cambiar el estado
+                function toggle:Set(value)
+                    toggle.Value = value
+                    Utility:Tween(toggle.Switch, {BackgroundColor3 = toggle.Value and NeonUI.Theme.Accent or Color3.fromRGB(100, 100, 100)}, 0.2)
+                    Utility:Tween(toggle.Circle, {Position = UDim2.new(0, toggle.Value and 20 or 2, 0.5, 0)}, 0.2)
+                    
+                    if toggle.Flag then
+                        window.Flags[toggle.Flag] = toggle.Value
+                    end
+                    
+                    toggle.Callback(toggle.Value)
+                end
+                
+                -- Establecer valor inicial
+                toggle:Set(toggle.Value)
+                
+                -- Evento de clic
+                toggle.Button.MouseButton1Click:Connect(function()
+                    toggle:Set(not toggle.Value)
+                end)
+                
+                -- Añadir a la lista de elementos
+                table.insert(section.Elements, toggle)
+                
+                return toggle
+            end
+            
+            -- Slider
+            function section:AddSlider(options)
+                options = options or {}
+                local slider = {
+                    Title = options.Title or "Slider",
+                    Description = options.Description,
+                    Default = options.Default or 50,
+                    Min = options.Min or 0,
+                    Max = options.Max or 100,
+                    Rounding = options.Rounding or 1,
+                    Flag = options.Flag,
+                    Callback = options.Callback or function() end,
+                    Value = options.Default or 50
+                }
+                
+                -- Registrar flag si existe
+                if slider.Flag then
+                    window.Flags[slider.Flag] = slider.Value
+                end
+                
+                -- Altura del slider (dependiendo de si tiene descripción)
+                local sliderHeight = slider.Description and 70 or 56
+                
+                -- Contenedor del slider
+                slider.Container = Utility:Create("Frame", {
+                    Name = slider.Title .. "Slider",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, sliderHeight),
+                    Parent = section.ElementsContainer
+                })
+                
+                -- Bordes redondeados
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = slider.Container
+                })
+                
+                -- Título y descripción
+                if slider.Description then
+                    slider.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = slider.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = slider.Container
+                    })
+                    
+                    slider.DescriptionLabel = Utility:Create("TextLabel", {
+                        Name = "Description",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 25),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = slider.Description,
+                        TextColor3 = Color3.fromRGB(180, 180, 180),
+                        TextSize = NeonUI.Theme.FontSize - 2,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = slider.Container
+                    })
+                    
+                    slider.SliderFrame = Utility:Create("Frame", {
+                        Name = "SliderFrame",
+                        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 50),
+                        Size = UDim2.new(1, -20, 0, 6),
+                        Parent = slider.Container
+                    })
+                else
+                    slider.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = slider.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = slider.Container
+                    })
+                    
+                    slider.SliderFrame = Utility:Create("Frame", {
+                        Name = "SliderFrame",
+                        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 36),
+                        Size = UDim2.new(1, -20, 0, 6),
+                        Parent = slider.Container
+                    })
+                end
+                
+                -- Bordes redondeados para slider
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(1, 0),
+                    Parent = slider.SliderFrame
+                })
+                
+                -- Valor del slider
+                slider.ValueFrame = Utility:Create("Frame", {
+                    Name = "ValueFrame",
+                    BackgroundColor3 = NeonUI.Theme.Accent,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), 0, 1, 0),
+                    Parent = slider.SliderFrame
+                })
+                
+                -- Bordes redondeados para valor
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(1, 0),
+                    Parent = slider.ValueFrame
+                })
+                
+                -- Bola deslizante
+                slider.SliderCircle = Utility:Create("Frame", {
+                    Name = "SliderCircle",
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    Position = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), 0, 0.5, 0),
+                    Size = UDim2.fromOffset(16, 16),
+                    ZIndex = 2,
+                    Parent = slider.SliderFrame
+                })
+                
+                -- Bordes redondeados para bola
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(1, 0),
+                    Parent = slider.SliderCircle
+                })
+                
+                -- Etiqueta de valor
+                slider.ValueLabel = Utility:Create("TextLabel", {
+                    Name = "ValueLabel",
+                    BackgroundColor3 = NeonUI.Theme.Primary,
+                    BorderSizePixel = 0,
+                    AnchorPoint = Vector2.new(0.5, 0),
+                    Position = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), 0, 0, -25),
+                    Size = UDim2.fromOffset(36, 20),
+                    Font = NeonUI.Theme.Font,
+                    Text = tostring(slider.Value),
+                    TextColor3 = NeonUI.Theme.Text,
+                    TextSize = NeonUI.Theme.FontSize - 2,
+                    Visible = false,
+                    ZIndex = 3,
+                    Parent = slider.SliderFrame
+                })
+                
+                -- Bordes redondeados para etiqueta
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 4),
+                    Parent = slider.ValueLabel
+                })
+                
+                -- Área interactiva
+                slider.SliderButton = Utility:Create("TextButton", {
+                    Name = "SliderButton",
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Text = "",
+                    ZIndex = 2,
+                    Parent = slider.SliderFrame
+                })
+                
+                -- Función para actualizar el valor
+                function slider:Set(value)
+                    value = math.clamp(value, slider.Min, slider.Max)
+                    
+                    if slider.Rounding then
+                        value = math.floor(value * (10 ^ slider.Rounding)) / (10 ^ slider.Rounding)
+                    end
+                    
+                    slider.Value = value
+                    slider.ValueLabel.Text = tostring(value)
+                    
+                    local percent = (value - slider.Min) / (slider.Max - slider.Min)
+                    Utility:Tween(slider.ValueFrame, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
+                    Utility:Tween(slider.SliderCircle, {Position = UDim2.new(percent, 0, 0.5, 0)}, 0.1)
+                    Utility:Tween(slider.ValueLabel, {Position = UDim2.new(percent, 0, 0, -25)}, 0.1)
+                    
+                    if slider.Flag then
+                        window.Flags[slider.Flag] = slider.Value
+                    end
+                    
+                    slider.Callback(value)
+                end
+                
+                -- Inicializar el valor
+                slider:Set(slider.Value)
+                
+                -- Drag del slider
+                local sliding = false
+                
+                slider.SliderButton.MouseButton1Down:Connect(function()
+                    sliding = true
+                    slider.ValueLabel.Visible = true
+                end)
+                
+                slider.SliderButton.MouseEnter:Connect(function()
+                    Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(18, 18)}, 0.2)
+                end)
+                
+                slider.SliderButton.MouseLeave:Connect(function()
+                    Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(16, 16)}, 0.2)
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if sliding then
+                            sliding = false
+                            slider.ValueLabel.Visible = false
+                        end
+                    end
+                end)
+                
+                UserInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                        if sliding then
+                            local mousePos = input.Position.X
+                            local framePos = slider.SliderFrame.AbsolutePosition.X
+                            local frameSize = slider.SliderFrame.AbsoluteSize.X
+                            
+                            local relativePos = math.clamp((mousePos - framePos) / frameSize, 0, 1)
+                            local value = slider.Min + (relativePos * (slider.Max - slider.Min))
+                            
+                            slider:Set(value)
+                        end
+                    end
+                end)
+                
+                -- Añadir a la lista de elementos
+                table.insert(section.Elements, slider)
+                
+                return slider
+            end
+            
+            -- Input (Campo de texto)
+            function section:AddInput(options)
+                options = options or {}
+                local input = {
+                    Title = options.Title or "Input",
+                    Description = options.Description,
+                    Default = options.Default or "",
+                    Placeholder = options.Placeholder or "Enter text...",
+                    Flag = options.Flag,
+                    Callback = options.Callback or function() end,
+                    Value = options.Default or ""
+                }
+                
+                -- Registrar flag si existe
+                if input.Flag then
+                    window.Flags[input.Flag] = input.Value
+                end
+                
+                -- Altura del input (dependiendo de si tiene descripción)
+                local inputHeight = input.Description and 70 or 56
+                
+                -- Contenedor del input
+                input.Container = Utility:Create("Frame", {
+                    Name = input.Title .. "Input",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, inputHeight),
+                    Parent = section.ElementsContainer
+                })
+                
+                -- Bordes redondeados
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = input.Container
+                })
+                
+                -- Título y descripción
+                if input.Description then
+                    input.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = input.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = input.Container
+                    })
+                    
+                    input.DescriptionLabel = Utility:Create("TextLabel", {
+                        Name = "Description",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 25),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = input.Description,
+                        TextColor3 = Color3.fromRGB(180, 180, 180),
+                        TextSize = NeonUI.Theme.FontSize - 2,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = input.Container
+                    })
+                    
+                    input.InputFrame = Utility:Create("Frame", {
+                        Name = "InputFrame",
+                        BackgroundColor3 = NeonUI.Theme.Primary,
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 50),
+                        Size = UDim2.new(1, -20, 0, 30),
+                        Parent = input.Container
+                    })
+                else
+                    input.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 8),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = input.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = input.Container
+                    })
+                    
+                    input.InputFrame = Utility:Create("Frame", {
+                        Name = "InputFrame",
+                        BackgroundColor3 = NeonUI.Theme.Primary,
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 36),
+                        Size = UDim2.new(1, -20, 0, 30),
+                        Parent = input.Container
+                    })
+                end
+                
+                -- Bordes redondeados para el campo
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = input.InputFrame
+                })
+                
+                -- Campo de texto
+                input.TextBox = Utility:Create("TextBox", {
+                    Name = "InputField",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 0),
+                    Size = UDim2.new(1, -20, 1, 0),
+                    Font = NeonUI.Theme.Font,
+                    Text = input.Value,
+                    PlaceholderText = input.Placeholder,
+                    TextColor3 = NeonUI.Theme.Text,
+                    PlaceholderColor3 = Color3.fromRGB(120, 120, 120),
+                    TextSize = NeonUI.Theme.FontSize,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearTextOnFocus = false,
+                    Parent = input.InputFrame
+                })
+                
+                -- Función para establecer el valor
+                function input:Set(value)
+                    input.Value = value
+                    input.TextBox.Text = value
+                    
+                    if input.Flag then
+                        window.Flags[input.Flag] = input.Value
+                    end
+                    
+                    input.Callback(value)
+                end
+                
+                -- Evento FocusLost
+                input.TextBox.FocusLost:Connect(function(enterPressed)
+                    input:Set(input.TextBox.Text)
+                end)
+                
+                -- Añadir a la lista de elementos
+                table.insert(section.Elements, input)
+                
+                return input
+            end
+            
+            -- Texto informativo
+            function section:AddParagraph(options)
+                options = options or {}
+                local paragraph = {
+                    Title = options.Title or "Paragraph",
+                    Content = options.Content or ""
+                }
+                
+                -- Calcular altura en función del contenido
+                local contentLines = #string.split(paragraph.Content, "\n")
+                local paragraphHeight = 36 + (contentLines * 20)
                 
                 -- Contenedor del párrafo
                 paragraph.Container = Utility:Create("Frame", {
-                    Name = "Paragraph_" .. title,
-                    BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-                    BackgroundTransparency = 0.1,
+                    Name = paragraph.Title .. "Paragraph",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
                     BorderSizePixel = 0,
-                    Size = UDim2.new(1, -10, 0, textHeight),
-                    ZIndex = 13,
-                    Parent = tab.Page
+                    Size = UDim2.new(1, 0, 0, paragraphHeight),
+                    Parent = section.ElementsContainer
                 })
                 
-                -- Esquinas redondeadas
+                -- Bordes redondeados
                 Utility:Create("UICorner", {
-                    CornerRadius = UDim.new(0, 8),
-                    Parent = paragraph.Container
-                })
-                
-                -- Borde sutil
-                Utility:Create("UIStroke", {
-                    Color = NeonUI.Theme.accent.tertiary,
-                    Transparency = 0.7,
-                    Thickness = 1,
+                    CornerRadius = UDim.new(0, 6),
                     Parent = paragraph.Container
                 })
                 
@@ -1523,191 +1661,510 @@ function NeonUI:CreateWindow(options)
                 paragraph.TitleLabel = Utility:Create("TextLabel", {
                     Name = "Title",
                     BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(14, 8),
-                    Size = UDim2.new(1, -28, 0, 20),
-                    Font = Enum.Font.GothamBold,
+                    Position = UDim2.fromOffset(10, 5),
+                    Size = UDim2.new(1, -20, 0, 26),
+                    Font = NeonUI.Theme.Font,
                     Text = paragraph.Title,
-                    TextColor3 = NeonUI.Theme.text.primary,
-                    TextSize = 16,
+                    TextColor3 = NeonUI.Theme.Text,
+                    TextSize = NeonUI.Theme.FontSize,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 14,
                     Parent = paragraph.Container
-                })
-                
-                -- Gradiente para el título
-                Utility:Create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.text.primary),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.primary)
-                    }),
-                    Parent = paragraph.TitleLabel
                 })
                 
                 -- Separador
-                local separator = Utility:Create("Frame", {
+                paragraph.Separator = Utility:Create("Frame", {
                     Name = "Separator",
-                    BackgroundColor3 = NeonUI.Theme.accent.primary,
+                    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
                     BorderSizePixel = 0,
-                    Position = UDim2.fromOffset(14, 32),
-                    Size = UDim2.fromOffset(50, 2),
-                    ZIndex = 14,
+                    Position = UDim2.new(0, 10, 0, 30),
+                    Size = UDim2.new(1, -20, 0, 1),
                     Parent = paragraph.Container
                 })
                 
-                -- Gradiente para el separador
-                local sepGradient = Utility:Create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, NeonUI.Theme.accent.primary),
-                        ColorSequenceKeypoint.new(1, NeonUI.Theme.accent.primary:Lerp(NeonUI.Theme.text.primary, 0.5))
-                    }),
-                    Parent = separator
+                -- Contenido
+                paragraph.ContentLabel = Utility:Create("TextLabel", {
+                    Name = "Content",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 36),
+                    Size = UDim2.new(1, -20, 0, paragraphHeight - 40),
+                    Font = NeonUI.Theme.Font,
+                    Text = paragraph.Content,
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
+                    TextSize = NeonUI.Theme.FontSize - 2,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Top,
+                    TextWrapped = true,
+                    Parent = paragraph.Container
                 })
                 
-                -- Animar separador
-                spawn(function()
-                    local offset = 0
-                    while separator.Parent do
-                        offset = offset + 0.01
-                        if offset > 1 then offset = 0 end
-                        sepGradient.Offset = Vector2.new(offset, 0)
-                        wait(0.03)
-                    end
-                end)
-                
-                -- Contenido
-                if content and content ~= "" then
-                    paragraph.ContentLabel = Utility:Create("TextLabel", {
-                        Name = "Content",
-                        BackgroundTransparency = 1,
-                        Position = UDim2.fromOffset(14, 38),
-                        Size = UDim2.new(1, -28, 0, textHeight - 45),
-                        Font = Enum.Font.Gotham,
-                        Text = content,
-                        TextColor3 = NeonUI.Theme.text.secondary,
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        TextYAlignment = Enum.TextYAlignment.Top,
-                        TextWrapped = true,
-                        ZIndex = 14,
-                        Parent = paragraph.Container
-                    })
+                -- Método para actualizar el contenido
+                function paragraph:SetContent(content)
+                    paragraph.Content = content
+                    paragraph.ContentLabel.Text = content
+                    
+                    -- Recalcular altura
+                    local newContentLines = #string.split(content, "\n")
+                    local newHeight = 36 + (newContentLines * 20)
+                    paragraph.Container.Size = UDim2.new(1, 0, 0, newHeight)
+                    paragraph.ContentLabel.Size = UDim2.new(1, -20, 0, newHeight - 40)
                 end
                 
-                -- Método para cambiar el contenido
-                function paragraph:SetContent(newContent)
-                    if paragraph.ContentLabel then
-                        paragraph.Content = newContent
-                        paragraph.ContentLabel.Text = newContent
-                        
-                        -- Ajustar tamaño basado en nuevo contenido
-                        local lines = math.ceil(string.len(newContent) / 30)
-                        local newHeight = 40 + lines * 20
-                        
-                        paragraph.Container.Size = UDim2.new(1, -10, 0, newHeight)
-                        paragraph.ContentLabel.Size = UDim2.new(1, -28, 0, newHeight - 45)
-                    end
-                end
-                
+                -- Añadir a la lista de elementos
                 table.insert(section.Elements, paragraph)
-                table.insert(tab.Elements, paragraph)
                 
                 return paragraph
             end
             
-            -- Aquí se añadirían otros tipos de elementos como toggle, slider, dropdown, etc.
+            -- Dropdown (Menú desplegable)
+            function section:AddDropdown(options)
+                options = options or {}
+                local dropdown = {
+                    Title = options.Title or "Dropdown",
+                    Description = options.Description,
+                    Values = options.Values or {},
+                    Default = options.Default,
+                    Multi = options.Multi or false,
+                    Flag = options.Flag,
+                    Callback = options.Callback or function() end,
+                    Value = options.Multi and {} or nil,
+                    Open = false
+                }
+                
+                -- Establecer valor por defecto
+                if options.Multi and options.Default then
+                    if type(options.Default) == "string" then
+                        dropdown.Value = {options.Default}
+                    elseif type(options.Default) == "table" then
+                        dropdown.Value = options.Default
+                    end
+                elseif not options.Multi and options.Default then
+                    dropdown.Value = options.Default
+                end
+                
+                -- Registrar flag si existe
+                if dropdown.Flag then
+                    window.Flags[dropdown.Flag] = dropdown.Value
+                end
+                
+                -- Altura del dropdown (dependiendo de si tiene descripción)
+                local dropdownHeight = dropdown.Description and 70 or 56
+                
+                -- Contenedor del dropdown
+                dropdown.Container = Utility:Create("Frame", {
+                    Name = dropdown.Title .. "Dropdown",
+                    BackgroundColor3 = NeonUI.Theme.Secondary,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, dropdownHeight),
+                    ClipsDescendants = false,
+                    Parent = section.ElementsContainer
+                })
+                
+                -- Bordes redondeados
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = dropdown.Container
+                })
+                
+                -- Título y descripción
+                if dropdown.Description then
+                    dropdown.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 5),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = dropdown.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = dropdown.Container
+                    })
+                    
+                    dropdown.DescriptionLabel = Utility:Create("TextLabel", {
+                        Name = "Description",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 25),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = dropdown.Description,
+                        TextColor3 = Color3.fromRGB(180, 180, 180),
+                        TextSize = NeonUI.Theme.FontSize - 2,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = dropdown.Container
+                    })
+                    
+                    dropdown.DropdownFrame = Utility:Create("Frame", {
+                        Name = "DropdownFrame",
+                        BackgroundColor3 = NeonUI.Theme.Primary,
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 50),
+                        Size = UDim2.new(1, -20, 0, 30),
+                        Parent = dropdown.Container
+                    })
+                else
+                    dropdown.TitleLabel = Utility:Create("TextLabel", {
+                        Name = "Title",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.fromOffset(10, 8),
+                        Size = UDim2.new(1, -20, 0, 20),
+                        Font = NeonUI.Theme.Font,
+                        Text = dropdown.Title,
+                        TextColor3 = NeonUI.Theme.Text,
+                        TextSize = NeonUI.Theme.FontSize,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = dropdown.Container
+                    })
+                    
+                    dropdown.DropdownFrame = Utility:Create("Frame", {
+                        Name = "DropdownFrame",
+                        BackgroundColor3 = NeonUI.Theme.Primary,
+                        BorderSizePixel = 0,
+                        Position = UDim2.new(0, 10, 0, 36),
+                        Size = UDim2.new(1, -20, 0, 30),
+                        Parent = dropdown.Container
+                    })
+                end
+                
+                -- Bordes redondeados para menú
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = dropdown.DropdownFrame
+                })
+                
+                -- Texto seleccionado
+                dropdown.SelectedLabel = Utility:Create("TextLabel", {
+                    Name = "SelectedLabel",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 0),
+                    Size = UDim2.new(1, -40, 1, 0),
+                    Font = NeonUI.Theme.Font,
+                    Text = dropdown.Multi 
+                        and (#dropdown.Value > 0 and table.concat(dropdown.Value, ", ") or "Select options...") 
+                        or (dropdown.Value or "Select an option..."),
+                    TextColor3 = dropdown.Value and NeonUI.Theme.Text or Color3.fromRGB(120, 120, 120),
+                    TextSize = NeonUI.Theme.FontSize,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    Parent = dropdown.DropdownFrame
+                })
+                
+                -- Icono desplegable
+                dropdown.Arrow = Utility:Create("ImageLabel", {
+                    Name = "Arrow",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(1, -25, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Size = UDim2.fromOffset(16, 16),
+                    Image = "rbxassetid://7733717447", -- Icono de flecha
+                    Rotation = 90,
+                    Parent = dropdown.DropdownFrame
+                })
+                
+                -- Botón de interacción
+                dropdown.Button = Utility:Create("TextButton", {
+                    Name = "DropdownButton",
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Text = "",
+                    Parent = dropdown.DropdownFrame
+                })
+                
+                -- Lista de opciones desplegable
+                dropdown.OptionList = Utility:Create("Frame", {
+                    Name = "OptionList",
+                    BackgroundColor3 = NeonUI.Theme.Primary,
+                    BorderSizePixel = 0,
+                    Position = UDim2.new(0, 0, 1, 5),
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Visible = false,
+                    ZIndex = 5,
+                    Parent = dropdown.DropdownFrame
+                })
+                
+                -- Bordes redondeados para lista
+                Utility:Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = dropdown.OptionList
+                })
+                
+                -- Contenedor de opciones con scroll
+                dropdown.OptionScroll = Utility:Create("ScrollingFrame", {
+                    Name = "OptionScroll",
+                    Active = true,
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Position = UDim2.fromOffset(0, 0),
+                    Size = UDim2.new(1, 0, 1, 0),
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    ScrollBarThickness = 4,
+                    ScrollBarImageColor3 = NeonUI.Theme.Accent,
+                    ZIndex = 5,
+                    Parent = dropdown.OptionList
+                })
+                
+                -- Layout para opciones
+                Utility:Create("UIListLayout", {
+                    Padding = UDim.new(0, 2),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Parent = dropdown.OptionScroll
+                })
+                
+                -- Padding para opciones
+                Utility:Create("UIPadding", {
+                    PaddingLeft = UDim.new(0, 5),
+                    PaddingRight = UDim.new(0, 5),
+                    PaddingTop = UDim.new(0, 5),
+                    PaddingBottom = UDim.new(0, 5),
+                    Parent = dropdown.OptionScroll
+                })
+                
+                -- Función para refrescar la lista de opciones
+                function dropdown:Refresh(values)
+                    if values then
+                        dropdown.Values = values
+                    end
+                    
+                    -- Limpiar opciones existentes
+                    for _, child in pairs(dropdown.OptionScroll:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child:Destroy()
+                        end
+                    end
+                    
+                    -- Reconstruir lista de opciones
+                    for i, value in ipairs(dropdown.Values) do
+                        local option = Utility:Create("TextButton", {
+                            Name = "Option_" .. i,
+                            BackgroundColor3 = dropdown.Multi 
+                                and (table.find(dropdown.Value, value) and NeonUI.Theme.Accent or NeonUI.Theme.Secondary)
+                                or (dropdown.Value == value and NeonUI.Theme.Accent or NeonUI.Theme.Secondary),
+                            BorderSizePixel = 0,
+                            Size = UDim2.new(1, 0, 0, 26),
+                            Font = NeonUI.Theme.Font,
+                            Text = value,
+                            TextColor3 = NeonUI.Theme.Text,
+                            TextSize = NeonUI.Theme.FontSize,
+                            ZIndex = 6,
+                            Parent = dropdown.OptionScroll
+                        })
+                        
+                        -- Bordes redondeados para opción
+                        Utility:Create("UICorner", {
+                            CornerRadius = UDim.new(0, 4),
+                            Parent = option
+                        })
+                        
+                        -- Evento de clic
+                        option.MouseButton1Click:Connect(function()
+                            if dropdown.Multi then
+                                if table.find(dropdown.Value, value) then
+                                    local pos = table.find(dropdown.Value, value)
+                                    table.remove(dropdown.Value, pos)
+                                    option.BackgroundColor3 = NeonUI.Theme.Secondary
+                                else
+                                    table.insert(dropdown.Value, value)
+                                    option.BackgroundColor3 = NeonUI.Theme.Accent
+                                end
+                                
+                                dropdown.SelectedLabel.Text = #dropdown.Value > 0 
+                                    and table.concat(dropdown.Value, ", ") 
+                                    or "Select options..."
+                                dropdown.SelectedLabel.TextColor3 = #dropdown.Value > 0 
+                                    and NeonUI.Theme.Text 
+                                    or Color3.fromRGB(120, 120, 120)
+                            else
+                                dropdown.Value = value
+                                dropdown.SelectedLabel.Text = value
+                                dropdown.SelectedLabel.TextColor3 = NeonUI.Theme.Text
+                                
+                                -- Actualizar apariencia
+                                for _, otherOption in pairs(dropdown.OptionScroll:GetChildren()) do
+                                    if otherOption:IsA("TextButton") then
+                                        otherOption.BackgroundColor3 = otherOption.Text == value 
+                                            and NeonUI.Theme.Accent 
+                                            or NeonUI.Theme.Secondary
+                                    end
+                                end
+                                
+                                -- Cerrar después de seleccionar en modo individual
+                                dropdown:Toggle(false)
+                            end
+                            
+                            -- Actualizar flag y callback
+                            if dropdown.Flag then
+                                window.Flags[dropdown.Flag] = dropdown.Value
+                            end
+                            
+                            dropdown.Callback(dropdown.Value)
+                        end)
+                    end
+                    
+                    -- Actualizar tamaño del canvas
+                    local listLayout = dropdown.OptionScroll:FindFirstChildOfClass("UIListLayout")
+                    if listLayout then
+                        dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+                    end
+                end
+                
+                -- Función para alternar visibilidad
+                function dropdown:Toggle(state)
+                    if state == nil then
+                        state = not dropdown.Open
+                    end
+                    
+                    dropdown.Open = state
+                    
+                    if state then
+                        -- Calcular altura para las opciones (máximo 5 opciones visibles)
+                        local optionCount = math.min(#dropdown.Values, 5)
+                        local listHeight = (optionCount * 28) + 10
+                        
+                        dropdown.OptionList.Visible = true
+                        Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
+                        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, listHeight)}, 0.2)
+                    else
+                        Utility:Tween(dropdown.Arrow, {Rotation = 90}, 0.2)
+                        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+                        task.wait(0.2)
+                        dropdown.OptionList.Visible = false
+                    end
+                end
+                
+                -- Función para establecer valor
+                function dropdown:Set(value)
+                    if dropdown.Multi and type(value) == "table" then
+                        dropdown.Value = value
+                        dropdown.SelectedLabel.Text = #value > 0 and table.concat(value, ", ") or "Select options..."
+                        dropdown.SelectedLabel.TextColor3 = #value > 0 and NeonUI.Theme.Text or Color3.fromRGB(120, 120, 120)
+                    elseif not dropdown.Multi and type(value) == "string" then
+                        dropdown.Value = value
+                        dropdown.SelectedLabel.Text = value
+                        dropdown.SelectedLabel.TextColor3 = NeonUI.Theme.Text
+                    end
+                    
+                    dropdown:Refresh()
+                    
+                    if dropdown.Flag then
+                        window.Flags[dropdown.Flag] = dropdown.Value
+                    end
+                    
+                    dropdown.Callback(dropdown.Value)
+                end
+                
+                -- Eventos
+                dropdown.Button.MouseButton1Click:Connect(function()
+                    dropdown:Toggle()
+                end)
+                
+                -- Cerrar al hacer clic fuera
+                UserInputService.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        if dropdown.Open then
+                            local isInDropdown = false
+                            
+                            if dropdown.OptionList.Visible and 
+                               input.Position.X >= dropdown.OptionList.AbsolutePosition.X and 
+                               input.Position.X <= dropdown.OptionList.AbsolutePosition.X + dropdown.OptionList.AbsoluteSize.X and 
+                               input.Position.Y >= dropdown.OptionList.AbsolutePosition.Y and 
+                               input.Position.Y <= dropdown.OptionList.AbsolutePosition.Y + dropdown.OptionList.AbsoluteSize.Y then
+                                isInDropdown = true
+                            end
+                            
+                            if not isInDropdown and
+                               not (input.Position.X >= dropdown.Button.AbsolutePosition.X and
+                                   input.Position.X <= dropdown.Button.AbsolutePosition.X + dropdown.Button.AbsoluteSize.X and
+                                   input.Position.Y >= dropdown.Button.AbsolutePosition.Y and
+                                   input.Position.Y <= dropdown.Button.AbsolutePosition.Y + dropdown.Button.AbsoluteSize.Y) then
+                                dropdown:Toggle(false)
+                            end
+                        end
+                    end
+                end)
+                
+                -- Inicializar opciones
+                dropdown:Refresh()
+                
+                -- Añadir a la lista de elementos
+                table.insert(section.Elements, dropdown)
+                
+                return dropdown
+            end
             
-            table.insert(tab.Sections, section)
             return section
         end
         
-        table.insert(self.Tabs, tab)
-        
-        -- Si es el primer tab, seleccionarlo automáticamente
-        if #self.Tabs == 1 then
-            self:SelectTab(tab.Name)
+        -- Obtener elementos por flag
+        function tab:GetElement(flag)
+            for _, section in ipairs(tab.Sections) do
+                for _, element in ipairs(section.Elements) do
+                    if element.Flag == flag then
+                        return element
+                    end
+                end
+            end
+            return nil
         end
         
         return tab
     end
     
     -- Seleccionar tab
-    function window:SelectTab(tabName)
-        for _, tab in pairs(self.Tabs) do
-            if tab.Name == tabName then
-                -- Activar el tab seleccionado
-                tab.Page.Visible = true
-                tab.SelectionIndicator.Visible = true
-                
-                Utility:Tween(tab.Button, {
-                    BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.primary, 0.2),
-                    BackgroundTransparency = 0,
-                    TextColor3 = NeonUI.Theme.text.primary
-                }, 0.3)
-                
-                Utility:Tween(tab.Border, {
-                    Color = NeonUI.Theme.accent.primary,
-                    Transparency = 0.3
-                }, 0.3)
-                
-                if tab.Icon and tab.Icon.Parent then
-                    Utility:Tween(tab.Icon.Parent, {
-                        BackgroundColor3 = NeonUI.Theme.accent.primary,
-                        BackgroundTransparency = 0.5
-                    }, 0.3)
-                    
-                    Utility:Tween(tab.Icon, {
-                        ImageColor3 = NeonUI.Theme.text.primary
-                    }, 0.3)
-                end
-                
-                -- Animación del indicador
-                tab.SelectionIndicator.Size = UDim2.new(0, 4, 0, 0)
-                tab.SelectionIndicator.Position = UDim2.new(0, -2, 0.5, 0)
-                
-                Utility:Tween(tab.SelectionIndicator, {
-                    Size = UDim2.new(0, 4, 0, 30),
-                    Position = UDim2.new(0, -2, 0.5, -15)
-                }, 0.3, Enum.EasingStyle.Back)
-                
-                self.CurrentTab = tab
-            else
-                -- Desactivar otros tabs
-                tab.Page.Visible = false
-                tab.SelectionIndicator.Visible = false
-                
-                Utility:Tween(tab.Button, {
-                    BackgroundColor3 = NeonUI.Theme.bg.dark:Lerp(NeonUI.Theme.accent.tertiary, 0.1),
-                    BackgroundTransparency = 0.2,
-                    TextColor3 = NeonUI.Theme.text.secondary
-                }, 0.3)
-                
-                Utility:Tween(tab.Border, {
-                    Color = NeonUI.Theme.accent.tertiary,
-                    Transparency = 0.7
-                }, 0.3)
-                
-                if tab.Icon and tab.Icon.Parent then
-                    Utility:Tween(tab.Icon.Parent, {
-                        BackgroundColor3 = NeonUI.Theme.accent.tertiary,
-                        BackgroundTransparency = 0.8
-                    }, 0.3)
-                    
-                    Utility:Tween(tab.Icon, {
-                        ImageColor3 = NeonUI.Theme.text.secondary
-                    }, 0.3)
+    function window:SelectTab(tab)
+        if window.CurrentTab == tab then return end
+        
+        -- Ocultar tab actual si existe
+        if window.CurrentTab then
+            window.CurrentTab.Container.Visible = false
+            Utility:Tween(window.CurrentTab.Button, {BackgroundColor3 = NeonUI.Theme.Primary}, 0.2)
+        end
+        
+        -- Mostrar nuevo tab
+        window.CurrentTab = tab
+        tab.Container.Visible = true
+        Utility:Tween(tab.Button, {BackgroundColor3 = NeonUI.Theme.Accent}, 0.2)
+    end
+    
+    -- Obtener elementos por flag
+    function window:GetFlag(flag)
+        return window.Flags[flag]
+    end
+    
+    -- Guardar configuración
+    function window:SaveConfig(name)
+        if not name then
+            name = "default"
+        end
+        
+        return SaveSystem:SaveSettings(name, window.Flags)
+    end
+    
+    -- Cargar configuración
+    function window:LoadConfig(name)
+        if not name then
+            name = "default"
+        end
+        
+        local config = SaveSystem:LoadSettings(name)
+        if not config then return false end
+        
+        -- Aplicar configuración cargada
+        for flag, value in pairs(config) do
+            window.Flags[flag] = value
+            
+            -- Recorrer tabs para encontrar el elemento
+            for _, tab in pairs(window.Tabs) do
+                local element = tab:GetElement(flag)
+                if element and element.Set then
+                    element:Set(value)
                 end
             end
         end
+        
+        return true
     end
     
     table.insert(self.Windows, window)
     return window
 end
 
--- Generar notificación
-function NeonUI:Notify(title, content, duration, type)
-    return NotificationSystem:Notify(self.ScreenGui, title, content, duration, type)
-end
-
--- Retornar la biblioteca inicializada
 return NeonUI
