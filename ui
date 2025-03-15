@@ -1,12 +1,13 @@
 --[[
     NeonUI Library
     Desarrollado por: MRX
+    Tema Lava por: Claude
     
     Una biblioteca de UI moderna y personalizable para scripts de Roblox
     Compatible con PC y dispositivos móviles
     
     Características:
-    - Diseño moderno con animaciones fluidas
+    - Diseño moderno con animaciones fluidas y efectos de lava
     - Totalmente personalizable con temas
     - Soporte para dispositivos móviles y PC
     - Sistema de guardado de configuración
@@ -26,17 +27,18 @@ local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Constantes UI
+-- Constantes UI - Tema Lava
 local FONT = Enum.Font.GothamSemibold
 local FONT_SIZE = 14
-local PRIMARY_COLOR = Color3.fromRGB(32, 35, 36)
-local SECONDARY_COLOR = Color3.fromRGB(50, 55, 56)
-local ACCENT_COLOR = Color3.fromRGB(66, 134, 244)
-local TEXT_COLOR = Color3.fromRGB(255, 255, 255)
+local PRIMARY_COLOR = Color3.fromRGB(25, 8, 8)      -- Rojo oscuro
+local SECONDARY_COLOR = Color3.fromRGB(35, 15, 15)  -- Rojo más claro
+local ACCENT_COLOR = Color3.fromRGB(255, 65, 10)    -- Naranja lava
+local TEXT_COLOR = Color3.fromRGB(255, 255, 255)    -- Blanco
 local TRANSPARENCY = 0.05
 local CORNER_RADIUS = UDim.new(0, 8)
 local STROKE_THICKNESS = 1
-local STROKE_COLOR = Color3.fromRGB(80, 80, 80)
+local STROKE_COLOR = Color3.fromRGB(230, 30, 30)    -- Borde rojo intenso
+local GLOW_COLOR = Color3.fromRGB(255, 100, 20)     -- Brillo lava
 
 -- Utilidades
 local Utility = {}
@@ -68,7 +70,7 @@ function Utility:Ripple(instance)
     local ripple = self:Create("Frame", {
         Name = "Ripple",
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundColor3 = GLOW_COLOR,
         BackgroundTransparency = 0.7,
         Position = UDim2.fromOffset(Mouse.X - instance.AbsolutePosition.X, Mouse.Y - instance.AbsolutePosition.Y),
         Size = UDim2.fromScale(0, 0),
@@ -123,6 +125,111 @@ function Utility:Draggable(frame, dragui)
             updateDrag(input)
         end
     end)
+end
+
+-- Crear efecto de resplandor de lava
+function Utility:CreateGlow(parent, color, size)
+    local glow = self:Create("ImageLabel", {
+        Name = "Glow",
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://5028857084", -- Imagen de resplandor circular
+        ImageColor3 = color or GLOW_COLOR,
+        ImageTransparency = 0.7,
+        ZIndex = parent.ZIndex - 1,
+        Parent = parent
+    })
+    
+    -- Calcular tamaño del resplandor
+    local growSize = size or 1.5
+    local parentSize = parent.AbsoluteSize
+    glow.Size = UDim2.new(1, parentSize.X * (growSize - 1), 1, parentSize.Y * (growSize - 1))
+    glow.Position = UDim2.new(0.5, -parentSize.X * (growSize - 1)/2, 0.5, -parentSize.Y * (growSize - 1)/2)
+    glow.AnchorPoint = Vector2.new(0.5, 0.5)
+    
+    -- Animar el resplandor
+    spawn(function()
+        local pulseSpeed = 0.05
+        local minTrans = 0.7
+        local maxTrans = 0.9
+        
+        while glow.Parent do
+            for i = minTrans, maxTrans, pulseSpeed do
+                if not glow or not glow.Parent then break end
+                glow.ImageTransparency = i
+                wait(0.05)
+            end
+            for i = maxTrans, minTrans, -pulseSpeed do
+                if not glow or not glow.Parent then break end
+                glow.ImageTransparency = i
+                wait(0.05)
+            end
+        end
+    end)
+    
+    return glow
+end
+
+-- Crear partículas de lava para fondos
+function Utility:CreateLavaParticles(parent, count)
+    local particleCount = count or 10
+    local container = self:Create("Frame", {
+        Name = "LavaParticles",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        ClipsDescendants = true,
+        ZIndex = parent.ZIndex + 1,
+        Parent = parent
+    })
+    
+    for i = 1, particleCount do
+        local particle = self:Create("Frame", {
+            Name = "Particle_" .. i,
+            BackgroundColor3 = GLOW_COLOR,
+            BackgroundTransparency = math.random(4, 8)/10,
+            BorderSizePixel = 0,
+            Position = UDim2.new(math.random(), 0, math.random(), 0),
+            Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5)),
+            ZIndex = container.ZIndex,
+            Parent = container
+        })
+        
+        -- Hacer redondas las partículas
+        self:Create("UICorner", {
+            CornerRadius = UDim.new(1, 0),
+            Parent = particle
+        })
+        
+        -- Añadir brillo a las partículas
+        self:CreateGlow(particle, GLOW_COLOR, 1.3)
+        
+        -- Animar partícula
+        spawn(function()
+            local speed = math.random(10, 30)/1000
+            local startPosX = particle.Position.X.Scale
+            local wobbleSpeed = math.random(5, 20)/10
+            local wobbleIntensity = math.random(5, 15)/1000
+            
+            while particle.Parent do
+                -- Movimiento ascendente
+                local newPosY = (particle.Position.Y.Scale - speed) % 1.2
+                if newPosY > 1 then newPosY = -0.2 end
+                
+                -- Movimiento en zigzag
+                local wobble = math.sin(time() * wobbleSpeed) * wobbleIntensity
+                local newPosX = (startPosX + wobble) % 1
+                
+                -- Actualizar posición
+                particle.Position = UDim2.new(newPosX, 0, newPosY, 0)
+                
+                -- Cambio de transparencia sutil
+                particle.BackgroundTransparency = 0.4 + math.sin(time() * 2) * 0.2
+                
+                wait()
+            end
+        end)
+    end
+    
+    return container
 end
 
 -- Sistema de guardado
@@ -191,6 +298,7 @@ local NeonUI = {
         Accent = ACCENT_COLOR,
         Text = TEXT_COLOR,
         Stroke = STROKE_COLOR,
+        Glow = GLOW_COLOR,
         Transparency = TRANSPARENCY,
         CornerRadius = CORNER_RADIUS,
         Font = FONT,
@@ -236,7 +344,7 @@ function NeonUI:Init()
     return self
 end
 
--- Sistema de notificaciones
+-- Sistema de notificaciones mejorado con tema lava
 function NeonUI:Notify(options)
     options = options or {}
     local notification = {
@@ -261,6 +369,31 @@ function NeonUI:Notify(options)
         CornerRadius = UDim.new(0, 8),
         Parent = notifFrame
     })
+    
+    -- Agregar gradiente para efecto lava
+    local gradient = Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+            ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+        }),
+        Rotation = 90,
+        Parent = notifFrame
+    })
+    
+    -- Animar gradiente
+    spawn(function()
+        local offset = 0
+        while notifFrame.Parent do
+            offset = offset + 0.01
+            if offset > 1 then offset = 0 end
+            gradient.Offset = Vector2.new(0, offset)
+            wait(0.03)
+        end
+    end)
+    
+    -- Partículas de lava
+    Utility:CreateLavaParticles(notifFrame, 6)
     
     -- Barra de acento
     local accentBar = Utility:Create("Frame", {
@@ -292,6 +425,15 @@ function NeonUI:Notify(options)
         Parent = notifFrame
     })
     
+    -- Gradiente para el título
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Text),
+            ColorSequenceKeypoint.new(1, self.Theme.Accent)
+        }),
+        Parent = titleLabel
+    })
+    
     -- Contenido
     local contentLabel = Utility:Create("TextLabel", {
         Name = "Content",
@@ -300,7 +442,7 @@ function NeonUI:Notify(options)
         Size = UDim2.new(1, -24, 0, 40),
         Font = self.Theme.Font,
         Text = notification.Content,
-        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextColor3 = Color3.fromRGB(220, 220, 220),
         TextSize = self.Theme.FontSize - 1,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -315,7 +457,7 @@ function NeonUI:Notify(options)
         Position = UDim2.new(1, -24, 0, 8),
         Size = UDim2.fromOffset(16, 16),
         Image = "rbxassetid://7733717447",
-        ImageColor3 = Color3.fromRGB(200, 200, 200),
+        ImageColor3 = self.Theme.Accent,
         Parent = notifFrame
     })
     
@@ -358,7 +500,7 @@ function NeonUI:Notify(options)
     return notifFrame
 end
 
--- Diálogo modal
+-- Diálogo modal con tema lava
 function NeonUI:Dialog(options)
     options = options or {}
     local dialog = {
@@ -397,6 +539,56 @@ function NeonUI:Dialog(options)
         Parent = dialogFrame
     })
     
+    -- Agregar gradiente para efecto lava
+    local gradient = Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+            ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+        }),
+        Rotation = 90,
+        Parent = dialogFrame
+    })
+    
+    -- Animar gradiente
+    spawn(function()
+        local offset = 0
+        while dialogFrame.Parent do
+            offset = offset + 0.01
+            if offset > 1 then offset = 0 end
+            gradient.Offset = Vector2.new(0, offset)
+            wait(0.03)
+        end
+    end)
+    
+    -- Añadir partículas de lava
+    Utility:CreateLavaParticles(dialogFrame, 8)
+    
+    -- Borde interior brillante
+    local innerBorder = Utility:Create("UIStroke", {
+        Color = self.Theme.Accent,
+        Thickness = 1.5,
+        Transparency = 0.7,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Parent = dialogFrame
+    })
+    
+    -- Animar el borde
+    spawn(function()
+        while innerBorder.Parent do
+            for i = 0.7, 0.4, -0.02 do
+                if not innerBorder or not innerBorder.Parent then break end
+                innerBorder.Transparency = i
+                wait(0.05)
+            end
+            for i = 0.4, 0.7, 0.02 do
+                if not innerBorder or not innerBorder.Parent then break end
+                innerBorder.Transparency = i
+                wait(0.05)
+            end
+        end
+    end)
+    
     -- Título
     local titleLabel = Utility:Create("TextLabel", {
         Name = "Title",
@@ -412,16 +604,45 @@ function NeonUI:Dialog(options)
         Parent = dialogFrame
     })
     
+    -- Gradiente para el título
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Text),
+            ColorSequenceKeypoint.new(1, self.Theme.Accent)
+        }),
+        Parent = titleLabel
+    })
+    
     -- Separador
     local separator = Utility:Create("Frame", {
         Name = "Separator",
-        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+        BackgroundColor3 = self.Theme.Accent,
         BorderSizePixel = 0,
         Position = UDim2.new(0, 15, 0, 40),
-        Size = UDim2.new(1, -30, 0, 1),
+        Size = UDim2.new(0, 50, 0, 2),
         ZIndex = 102,
         Parent = dialogFrame
     })
+    
+    -- Gradiente para el separador
+    local sepGradient = Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Accent),
+            ColorSequenceKeypoint.new(1, self.Theme.Accent:Lerp(self.Theme.Text, 0.5))
+        }),
+        Parent = separator
+    })
+    
+    -- Animar separador
+    spawn(function()
+        local offset = 0
+        while separator.Parent do
+            offset = offset + 0.01
+            if offset > 1 then offset = 0 end
+            sepGradient.Offset = Vector2.new(offset, 0)
+            wait(0.03)
+        end
+    end)
     
     -- Contenido
     local contentLabel = Utility:Create("TextLabel", {
@@ -431,7 +652,7 @@ function NeonUI:Dialog(options)
         Size = UDim2.new(1, -30, 0, 60),
         Font = self.Theme.Font,
         Text = dialog.Content,
-        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextColor3 = Color3.fromRGB(220, 220, 220),
         TextSize = self.Theme.FontSize,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -480,8 +701,14 @@ function NeonUI:Dialog(options)
             Parent = button
         })
         
+        -- Brillo para el botón
+        Utility:CreateGlow(button, self.Theme.Glow, 1.2)
+        
         -- Evento de clic
         button.MouseButton1Click:Connect(function()
+            -- Efecto ripple
+            Utility:Ripple(button)
+            
             -- Ejecutar callback
             if buttonInfo.Callback then
                 buttonInfo.Callback()
@@ -492,6 +719,15 @@ function NeonUI:Dialog(options)
             Utility:Tween(overlay, {BackgroundTransparency = 1}, 0.3)
             task.wait(0.3)
             overlay:Destroy()
+        end)
+        
+        -- Efectos de hover
+        button.MouseEnter:Connect(function()
+            Utility:Tween(button, {BackgroundColor3 = self.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)}, 0.2)
+        end)
+        
+        button.MouseLeave:Connect(function()
+            Utility:Tween(button, {BackgroundColor3 = self.Theme.Accent}, 0.2)
         end)
     end
     
@@ -590,7 +826,11 @@ function NeonUI:GetIcon(name)
         speaker = "7734052733",
         tv = "7733766052",
         ["log-out"] = "7733978918",
-        ["log-in"] = "7733923449"
+        ["log-in"] = "7733923449",
+        fire = "9835862639",  -- Icono de fuego para tema lava
+        explosion = "9835868665", -- Explosión para tema lava
+        flame = "9835865192",    -- Llama para tema lava
+        volcano = "9482093348"   -- Volcán para tema lava
     }
     
     return icons[name:lower()] or "7733717447" -- Default to X icon
@@ -604,7 +844,7 @@ function NeonUI:CreateWindow(options)
         SubTitle = options.SubTitle or "",
         Size = options.Size or UDim2.fromOffset(550, 400),
         Position = options.Position or UDim2.fromScale(0.5, 0.5),
-        Theme = options.Theme or "Dark",
+        Theme = options.Theme or "Lava",
         Tabs = {},
         TabsFrame = nil,
         TabsContainer = nil,
@@ -629,6 +869,12 @@ function NeonUI:CreateWindow(options)
         self.Theme.Primary = Color3.fromRGB(35, 25, 50)
         self.Theme.Secondary = Color3.fromRGB(48, 34, 70)
         self.Theme.Accent = Color3.fromRGB(165, 82, 255)
+    elseif window.Theme == "Lava" then
+        self.Theme.Primary = Color3.fromRGB(25, 8, 8)
+        self.Theme.Secondary = Color3.fromRGB(35, 15, 15)
+        self.Theme.Accent = Color3.fromRGB(255, 65, 10)
+        self.Theme.Glow = Color3.fromRGB(255, 100, 20)
+        self.Theme.Stroke = Color3.fromRGB(230, 30, 30)
     end
     
     -- Crear ventana principal
@@ -648,6 +894,58 @@ function NeonUI:CreateWindow(options)
         Parent = window.Frame
     })
     
+    -- Agregar gradiente para efecto lava
+    if window.Theme == "Lava" then
+        local gradient = Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Primary),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+                ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+            }),
+            Rotation = 90,
+            Parent = window.Frame
+        })
+        
+        -- Animar gradiente
+        spawn(function()
+            local offset = 0
+            while window.Frame.Parent do
+                offset = offset + 0.005
+                if offset > 1 then offset = 0 end
+                gradient.Offset = Vector2.new(0, offset)
+                wait(0.03)
+            end
+        end)
+        
+        -- Agregar partículas de lava al fondo
+        Utility:CreateLavaParticles(window.Frame, 12)
+        
+        -- Borde interior brillante
+        local innerBorder = Utility:Create("UIStroke", {
+            Color = self.Theme.Accent,
+            Thickness = 1.5,
+            Transparency = 0.7,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = window.Frame
+        })
+        
+        -- Animar el borde
+        spawn(function()
+            while innerBorder.Parent do
+                for i = 0.7, 0.5, -0.01 do
+                    if not innerBorder or not innerBorder.Parent then break end
+                    innerBorder.Transparency = i
+                    wait(0.05)
+                end
+                for i = 0.5, 0.7, 0.01 do
+                    if not innerBorder or not innerBorder.Parent then break end
+                    innerBorder.Transparency = i
+                    wait(0.05)
+                end
+            end
+        end)
+    end
+    
     -- Barra de título
     window.TitleBar = Utility:Create("Frame", {
         Name = "TitleBar",
@@ -663,6 +961,34 @@ function NeonUI:CreateWindow(options)
         Parent = window.TitleBar
     })
     
+    -- Si es tema lava, agregar gradient y arreglar esquinas
+    if window.Theme == "Lava" then
+        -- Gradient para la barra de título
+        local titleGradient = Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Secondary:Lerp(self.Theme.Accent, 0.2)),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Secondary),
+                ColorSequenceKeypoint.new(1, self.Theme.Secondary:Lerp(self.Theme.Accent, 0.1))
+            }),
+            Rotation = 90,
+            Parent = window.TitleBar
+        })
+        
+        -- Fijar esquinas inferiores
+        local bottomFixFrame = Utility:Create("Frame", {
+            Name = "BottomFixFrame",
+            BackgroundColor3 = self.Theme.Secondary,
+            BorderSizePixel = 0,
+            Position = UDim2.new(0, 0, 1, -10),
+            Size = UDim2.new(1, 0, 0, 10),
+            ZIndex = window.TitleBar.ZIndex,
+            Parent = window.TitleBar
+        })
+        
+        -- Copiar gradiente
+        titleGradient:Clone().Parent = bottomFixFrame
+    end
+    
     -- Título
     window.TitleText = Utility:Create("TextLabel", {
         Name = "Title",
@@ -670,12 +996,23 @@ function NeonUI:CreateWindow(options)
         Position = UDim2.fromOffset(12, 0),
         Size = UDim2.new(1, -24, 1, 0),
         Font = self.Theme.Font,
-        Text = window.Title,
+        Text = window.Theme == "Lava" and "🌋 " .. window.Title or window.Title,
         TextColor3 = self.Theme.Text,
         TextSize = self.Theme.FontSize + 2,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = window.TitleBar
     })
+    
+    -- Si es tema lava, añadir gradient al texto
+    if window.Theme == "Lava" then
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Text),
+                ColorSequenceKeypoint.new(1, self.Theme.Accent)
+            }),
+            Parent = window.TitleText
+        })
+    end
     
     -- Subtítulo
     if window.SubTitle and window.SubTitle ~= "" then
@@ -703,7 +1040,7 @@ function NeonUI:CreateWindow(options)
         Position = UDim2.new(1, -28, 0, 8),
         Size = UDim2.fromOffset(20, 20),
         Image = "rbxassetid://7733717447",
-        ImageColor3 = Color3.fromRGB(220, 220, 220),
+        ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
     })
     
@@ -714,7 +1051,7 @@ function NeonUI:CreateWindow(options)
         Position = UDim2.new(1, -52, 0, 8),
         Size = UDim2.fromOffset(20, 20),
         Image = "rbxassetid://7733774602",
-        ImageColor3 = Color3.fromRGB(220, 220, 220),
+        ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
     })
     
@@ -736,6 +1073,28 @@ function NeonUI:CreateWindow(options)
         CornerRadius = self.Theme.CornerRadius,
         Parent = window.TabsFrame
     })
+    
+    -- Si es tema lava, añadir efectos
+    if window.Theme == "Lava" then
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Secondary:Lerp(self.Theme.Primary, 0.3)),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Secondary),
+                ColorSequenceKeypoint.new(1, self.Theme.Secondary:Lerp(self.Theme.Primary, 0.3))
+            }),
+            Rotation = 90,
+            Parent = window.TabsFrame
+        })
+        
+        -- Borde interior
+        Utility:Create("UIStroke", {
+            Color = self.Theme.Accent,
+            Thickness = 1,
+            Transparency = 0.8,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = window.TabsFrame
+        })
+    end
     
     -- ScrollFrame para tabs
     window.TabsScrollFrame = Utility:Create("ScrollingFrame", {
@@ -784,6 +1143,28 @@ function NeonUI:CreateWindow(options)
         Parent = window.ContentFrame
     })
     
+    -- Si es tema lava, añadir efectos
+    if window.Theme == "Lava" then
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Secondary:Lerp(self.Theme.Primary, 0.2)),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Secondary),
+                ColorSequenceKeypoint.new(1, self.Theme.Secondary:Lerp(self.Theme.Primary, 0.2))
+            }),
+            Rotation = 90,
+            Parent = window.ContentFrame
+        })
+        
+        -- Borde interior
+        Utility:Create("UIStroke", {
+            Color = self.Theme.Accent,
+            Thickness = 1,
+            Transparency = 0.8,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = window.ContentFrame
+        })
+    end
+    
     -- Funcionalidad de los botones
     window.CloseButton.MouseButton1Click:Connect(function()
         Utility:Tween(window.Frame, {Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(0.5, 0.5)}, 0.25)
@@ -827,6 +1208,18 @@ function NeonUI:CreateWindow(options)
             CornerRadius = UDim.new(0, 6),
             Parent = tab.Button
         })
+        
+        -- Si es tema lava, añadir efectos
+        if window.Theme == "Lava" then
+            -- Borde sutil
+            Utility:Create("UIStroke", {
+                Color = NeonUI.Theme.Accent,
+                Thickness = 1,
+                Transparency = 0.8,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                Parent = tab.Button
+            })
+        end
         
         -- Icono del tab (si existe)
         if tab.Icon then
@@ -937,6 +1330,29 @@ function NeonUI:CreateWindow(options)
                 Parent = section.Container
             })
             
+            -- Si es tema lava, añadir efectos
+            if window.Theme == "Lava" then
+                -- Gradiente
+                Utility:Create("UIGradient", {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, NeonUI.Theme.Primary),
+                        ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Primary:Lerp(NeonUI.Theme.Secondary, 0.3)),
+                        ColorSequenceKeypoint.new(1, NeonUI.Theme.Primary)
+                    }),
+                    Rotation = 90,
+                    Parent = section.Container
+                })
+                
+                -- Borde sutil
+                Utility:Create("UIStroke", {
+                    Color = NeonUI.Theme.Accent,
+                    Thickness = 1,
+                    Transparency = 0.8,
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Parent = section.Container
+                })
+            end
+            
             -- Título de sección
             section.TitleLabel = Utility:Create("TextLabel", {
                 Name = "Title",
@@ -951,15 +1367,48 @@ function NeonUI:CreateWindow(options)
                 Parent = section.Container
             })
             
+            -- Si es tema lava, añadir gradiente
+            if window.Theme == "Lava" then
+                Utility:Create("UIGradient", {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                        ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                    }),
+                    Parent = section.TitleLabel
+                })
+            end
+            
             -- Separador
             section.Separator = Utility:Create("Frame", {
                 Name = "Separator",
-                BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
                 BorderSizePixel = 0,
                 Position = UDim2.new(0, 10, 0, 30),
-                Size = UDim2.new(1, -20, 0, 1),
+                Size = UDim2.new(0, 50, 0, 2),
                 Parent = section.Container
             })
+            
+            -- Si es tema lava, añadir gradiente al separador
+            if window.Theme == "Lava" then
+                local sepGradient = Utility:Create("UIGradient", {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                        ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent:Lerp(NeonUI.Theme.Text, 0.5))
+                    }),
+                    Parent = section.Separator
+                })
+                
+                -- Animar separador
+                spawn(function()
+                    local offset = 0
+                    while section.Separator.Parent do
+                        offset = offset + 0.01
+                        if offset > 1 then offset = 0 end
+                        sepGradient.Offset = Vector2.new(offset, 0)
+                        wait(0.03)
+                    end
+                end)
+            end
             
             -- Contenedor de elementos
             section.ElementsContainer = Utility:Create("Frame", {
@@ -1019,6 +1468,29 @@ function NeonUI:CreateWindow(options)
                     Parent = button.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = button.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = button.Container
+                    })
+                end
+                
                 -- Botón interactivo
                 button.ButtonElement = Utility:Create("TextButton", {
                     Name = "ButtonElement",
@@ -1027,7 +1499,7 @@ function NeonUI:CreateWindow(options)
                     Position = UDim2.new(1, -105, 0, 5),
                     Size = UDim2.new(0, 95, 0, 26),
                     Font = NeonUI.Theme.Font,
-                    Text = button.Title,
+                    Text = window.Theme == "Lava" and "CLICK" or button.Title,
                     TextColor3 = Color3.fromRGB(255, 255, 255),
                     TextSize = NeonUI.Theme.FontSize,
                     Parent = button.Container
@@ -1038,6 +1510,23 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(0, 4),
                     Parent = button.ButtonElement
                 })
+                
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Agregar gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                        }),
+                        Rotation = 45,
+                        Parent = button.ButtonElement
+                    })
+                    
+                    -- Añadir brillo
+                    Utility:CreateGlow(button.ButtonElement, NeonUI.Theme.Glow, 1.2)
+                end
                 
                 -- Título y descripción
                 if button.Description then
@@ -1053,6 +1542,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = button.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = button.TitleLabel
+                        })
+                    end
                     
                     button.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
@@ -1079,7 +1579,35 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = button.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = button.TitleLabel
+                        })
+                    end
                 end
+                
+                -- Efectos de hover para el botón
+                button.ButtonElement.MouseEnter:Connect(function()
+                    Utility:Tween(button.ButtonElement, {
+                        BackgroundColor3 = NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2),
+                        Size = UDim2.new(0, 98, 0, 28),
+                        Position = UDim2.new(1, -107, 0, 4)
+                    }, 0.2)
+                end)
+                
+                button.ButtonElement.MouseLeave:Connect(function()
+                    Utility:Tween(button.ButtonElement, {
+                        BackgroundColor3 = NeonUI.Theme.Accent,
+                        Size = UDim2.new(0, 95, 0, 26),
+                        Position = UDim2.new(1, -105, 0, 5)
+                    }, 0.2)
+                end)
                 
                 -- Efecto al hacer clic
                 button.ButtonElement.MouseButton1Click:Connect(function()
@@ -1134,6 +1662,29 @@ function NeonUI:CreateWindow(options)
                     Parent = toggle.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = toggle.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = toggle.Container
+                    })
+                end
+                
                 -- Título y descripción
                 if toggle.Description then
                     toggle.TitleLabel = Utility:Create("TextLabel", {
@@ -1148,6 +1699,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = toggle.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = toggle.TitleLabel
+                        })
+                    end
                     
                     toggle.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
@@ -1174,6 +1736,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = toggle.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = toggle.TitleLabel
+                        })
+                    end
                 end
                 
                 -- Toggle switch
@@ -1192,6 +1765,12 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(1, 0),
                     Parent = toggle.Switch
                 })
+                
+                -- Si es tema lava, añadir efectos al switch
+                if window.Theme == "Lava" and toggle.Value then
+                    -- Brillo al switch cuando está activado
+                    Utility:CreateGlow(toggle.Switch, NeonUI.Theme.Glow, 1.3)
+                end
                 
                 -- Círculo del switch
                 toggle.Circle = Utility:Create("Frame", {
@@ -1224,6 +1803,21 @@ function NeonUI:CreateWindow(options)
                     toggle.Value = value
                     Utility:Tween(toggle.Switch, {BackgroundColor3 = toggle.Value and NeonUI.Theme.Accent or Color3.fromRGB(100, 100, 100)}, 0.2)
                     Utility:Tween(toggle.Circle, {Position = UDim2.new(0, toggle.Value and 20 or 2, 0.5, 0)}, 0.2)
+                    
+                    -- Si es tema lava, manejar el brillo
+                    if window.Theme == "Lava" then
+                        if toggle.Value then
+                            -- Añadir brillo si no existe
+                            if not toggle.Switch:FindFirstChild("Glow") then
+                                Utility:CreateGlow(toggle.Switch, NeonUI.Theme.Glow, 1.3)
+                            end
+                        else
+                            -- Remover brillo si existe
+                            if toggle.Switch:FindFirstChild("Glow") then
+                                toggle.Switch.Glow:Destroy()
+                            end
+                        end
+                    end
                     
                     if toggle.Flag then
                         window.Flags[toggle.Flag] = toggle.Value
@@ -1284,6 +1878,29 @@ function NeonUI:CreateWindow(options)
                     Parent = slider.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = slider.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = slider.Container
+                    })
+                end
+                
                 -- Título y descripción
                 if slider.Description then
                     slider.TitleLabel = Utility:Create("TextLabel", {
@@ -1298,6 +1915,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = slider.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = slider.TitleLabel
+                        })
+                    end
                     
                     slider.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
@@ -1334,6 +1962,17 @@ function NeonUI:CreateWindow(options)
                         Parent = slider.Container
                     })
                     
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = slider.TitleLabel
+                        })
+                    end
+                    
                     slider.SliderFrame = Utility:Create("Frame", {
                         Name = "SliderFrame",
                         BackgroundColor3 = Color3.fromRGB(60, 60, 60),
@@ -1365,6 +2004,11 @@ function NeonUI:CreateWindow(options)
                     Parent = slider.ValueFrame
                 })
                 
+                -- Si es tema lava, añadir brillo
+                if window.Theme == "Lava" then
+                    Utility:CreateGlow(slider.ValueFrame, NeonUI.Theme.Glow, 1.3)
+                end
+                
                 -- Bola deslizante
                 slider.SliderCircle = Utility:Create("Frame", {
                     Name = "SliderCircle",
@@ -1382,6 +2026,11 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(1, 0),
                     Parent = slider.SliderCircle
                 })
+                
+                -- Si es tema lava, añadir brillo a la bola
+                if window.Theme == "Lava" then
+                    Utility:CreateGlow(slider.SliderCircle, NeonUI.Theme.Glow, 1.2)
+                end
                 
                 -- Etiqueta de valor
                 slider.ValueLabel = Utility:Create("TextLabel", {
@@ -1405,6 +2054,16 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(0, 4),
                     Parent = slider.ValueLabel
                 })
+                
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.7,
+                        Parent = slider.ValueLabel
+                    })
+                end
                 
                 -- Área interactiva
                 slider.SliderButton = Utility:Create("TextButton", {
@@ -1448,6 +2107,11 @@ function NeonUI:CreateWindow(options)
                 slider.SliderButton.MouseButton1Down:Connect(function()
                     sliding = true
                     slider.ValueLabel.Visible = true
+                    
+                    -- Si es tema lava, añadir efecto pulsante al arrastrar
+                    if window.Theme == "Lava" then
+                        Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(20, 20)}, 0.2)
+                    end
                 end)
                 
                 slider.SliderButton.MouseEnter:Connect(function()
@@ -1455,7 +2119,9 @@ function NeonUI:CreateWindow(options)
                 end)
                 
                 slider.SliderButton.MouseLeave:Connect(function()
-                    Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(16, 16)}, 0.2)
+                    if not sliding then
+                        Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(16, 16)}, 0.2)
+                    end
                 end)
                 
                 UserInputService.InputEnded:Connect(function(input)
@@ -1463,6 +2129,11 @@ function NeonUI:CreateWindow(options)
                         if sliding then
                             sliding = false
                             slider.ValueLabel.Visible = false
+                            
+                            -- Si es tema lava, restaurar tamaño normal
+                            if window.Theme == "Lava" then
+                                Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(16, 16)}, 0.2)
+                            end
                         end
                     end
                 end)
@@ -1524,6 +2195,29 @@ function NeonUI:CreateWindow(options)
                     Parent = input.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = input.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = input.Container
+                    })
+                end
+                
                 -- Título y descripción
                 if input.Description then
                     input.TitleLabel = Utility:Create("TextLabel", {
@@ -1538,6 +2232,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = input.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = input.TitleLabel
+                        })
+                    end
                     
                     input.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
@@ -1574,6 +2279,17 @@ function NeonUI:CreateWindow(options)
                         Parent = input.Container
                     })
                     
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = input.TitleLabel
+                        })
+                    end
+                    
                     input.InputFrame = Utility:Create("Frame", {
                         Name = "InputFrame",
                         BackgroundColor3 = NeonUI.Theme.Primary,
@@ -1589,6 +2305,18 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(0, 6),
                     Parent = input.InputFrame
                 })
+                
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Borde interior
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.7,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = input.InputFrame
+                    })
+                end
                 
                 -- Campo de texto
                 input.TextBox = Utility:Create("TextBox", {
@@ -1619,9 +2347,29 @@ function NeonUI:CreateWindow(options)
                     input.Callback(value)
                 end
                 
-                -- Evento FocusLost
+                -- Efectos para focus
+                input.TextBox.Focused:Connect(function()
+                    -- Si es tema lava, añadir brillo al focus
+                    if window.Theme == "Lava" then
+                        Utility:CreateGlow(input.InputFrame, NeonUI.Theme.Glow, 1.2)
+                        Utility:Tween(input.InputFrame, {
+                            BackgroundColor3 = NeonUI.Theme.Primary:Lerp(NeonUI.Theme.Accent, 0.1)
+                        }, 0.2)
+                    end
+                end)
+                
                 input.TextBox.FocusLost:Connect(function(enterPressed)
                     input:Set(input.TextBox.Text)
+                    
+                    -- Si es tema lava, quitar brillo al perder focus
+                    if window.Theme == "Lava" then
+                        if input.InputFrame:FindFirstChild("Glow") then
+                            input.InputFrame.Glow:Destroy()
+                        end
+                        Utility:Tween(input.InputFrame, {
+                            BackgroundColor3 = NeonUI.Theme.Primary
+                        }, 0.2)
+                    end
                 end)
                 
                 -- Añadir a la lista de elementos
@@ -1657,6 +2405,29 @@ function NeonUI:CreateWindow(options)
                     Parent = paragraph.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = paragraph.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = paragraph.Container
+                    })
+                end
+                
                 -- Título
                 paragraph.TitleLabel = Utility:Create("TextLabel", {
                     Name = "Title",
@@ -1671,15 +2442,48 @@ function NeonUI:CreateWindow(options)
                     Parent = paragraph.Container
                 })
                 
+                -- Si es tema lava, añadir gradiente
+                if window.Theme == "Lava" then
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                        }),
+                        Parent = paragraph.TitleLabel
+                    })
+                end
+                
                 -- Separador
                 paragraph.Separator = Utility:Create("Frame", {
                     Name = "Separator",
-                    BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+                    BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
                     BorderSizePixel = 0,
                     Position = UDim2.new(0, 10, 0, 30),
-                    Size = UDim2.new(1, -20, 0, 1),
+                    Size = UDim2.new(0, 50, 0, 2),
                     Parent = paragraph.Container
                 })
+                
+                -- Si es tema lava, añadir gradiente al separador
+                if window.Theme == "Lava" then
+                    local sepGradient = Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent:Lerp(NeonUI.Theme.Text, 0.5))
+                        }),
+                        Parent = paragraph.Separator
+                    })
+                    
+                    -- Animar separador
+                    spawn(function()
+                        local offset = 0
+                        while paragraph.Separator.Parent do
+                            offset = offset + 0.01
+                            if offset > 1 then offset = 0 end
+                            sepGradient.Offset = Vector2.new(offset, 0)
+                            wait(0.03)
+                        end
+                    end)
+                end
                 
                 -- Contenido
                 paragraph.ContentLabel = Utility:Create("TextLabel", {
@@ -1765,6 +2569,29 @@ function NeonUI:CreateWindow(options)
                     Parent = dropdown.Container
                 })
                 
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Gradiente
+                    Utility:Create("UIGradient", {
+                        Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3)),
+                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Secondary),
+                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Primary, 0.3))
+                        }),
+                        Rotation = 90,
+                        Parent = dropdown.Container
+                    })
+                    
+                    -- Borde sutil
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.8,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = dropdown.Container
+                    })
+                end
+                
                 -- Título y descripción
                 if dropdown.Description then
                     dropdown.TitleLabel = Utility:Create("TextLabel", {
@@ -1779,6 +2606,17 @@ function NeonUI:CreateWindow(options)
                         TextXAlignment = Enum.TextXAlignment.Left,
                         Parent = dropdown.Container
                     })
+                    
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = dropdown.TitleLabel
+                        })
+                    end
                     
                     dropdown.DescriptionLabel = Utility:Create("TextLabel", {
                         Name = "Description",
@@ -1815,6 +2653,17 @@ function NeonUI:CreateWindow(options)
                         Parent = dropdown.Container
                     })
                     
+                    -- Si es tema lava, añadir gradiente
+                    if window.Theme == "Lava" then
+                        Utility:Create("UIGradient", {
+                            Color = ColorSequence.new({
+                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Text),
+                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                            }),
+                            Parent = dropdown.TitleLabel
+                        })
+                    end
+                    
                     dropdown.DropdownFrame = Utility:Create("Frame", {
                         Name = "DropdownFrame",
                         BackgroundColor3 = NeonUI.Theme.Primary,
@@ -1830,6 +2679,18 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(0, 6),
                     Parent = dropdown.DropdownFrame
                 })
+                
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Borde interior
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.7,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = dropdown.DropdownFrame
+                    })
+                end
                 
                 -- Texto seleccionado
                 dropdown.SelectedLabel = Utility:Create("TextLabel", {
@@ -1856,6 +2717,7 @@ function NeonUI:CreateWindow(options)
                     AnchorPoint = Vector2.new(0, 0.5),
                     Size = UDim2.fromOffset(16, 16),
                     Image = "rbxassetid://7733717447", -- Icono de flecha
+                    ImageColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(220, 220, 220),
                     Rotation = 90,
                     Parent = dropdown.DropdownFrame
                 })
@@ -1886,6 +2748,18 @@ function NeonUI:CreateWindow(options)
                     CornerRadius = UDim.new(0, 6),
                     Parent = dropdown.OptionList
                 })
+                
+                -- Si es tema lava, añadir efectos
+                if window.Theme == "Lava" then
+                    -- Borde interior
+                    Utility:Create("UIStroke", {
+                        Color = NeonUI.Theme.Accent,
+                        Thickness = 1,
+                        Transparency = 0.7,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Parent = dropdown.OptionList
+                    })
+                end
                 
                 -- Contenedor de opciones con scroll
                 dropdown.OptionScroll = Utility:Create("ScrollingFrame", {
@@ -1954,6 +2828,20 @@ function NeonUI:CreateWindow(options)
                             Parent = option
                         })
                         
+                        -- Si es tema lava, añadir efectos a la opción seleccionada
+                        if window.Theme == "Lava" and ((dropdown.Multi and table.find(dropdown.Value, value)) or (not dropdown.Multi and dropdown.Value == value)) then
+                            -- Agregar gradiente
+                            Utility:Create("UIGradient", {
+                                Color = ColorSequence.new({
+                                    ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                                    ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                                    ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                                }),
+                                Rotation = 45,
+                                Parent = option
+                            })
+                        end
+                        
                         -- Evento de clic
                         option.MouseButton1Click:Connect(function()
                             if dropdown.Multi then
@@ -1961,9 +2849,31 @@ function NeonUI:CreateWindow(options)
                                     local pos = table.find(dropdown.Value, value)
                                     table.remove(dropdown.Value, pos)
                                     option.BackgroundColor3 = NeonUI.Theme.Secondary
+                                    
+                                    -- Si es tema lava, quitar efectos
+                                    if window.Theme == "Lava" then
+                                        for _, child in pairs(option:GetChildren()) do
+                                            if child:IsA("UIGradient") then
+                                                child:Destroy()
+                                            end
+                                        end
+                                    end
                                 else
                                     table.insert(dropdown.Value, value)
                                     option.BackgroundColor3 = NeonUI.Theme.Accent
+                                    
+                                    -- Si es tema lava, añadir efectos
+                                    if window.Theme == "Lava" then
+                                        Utility:Create("UIGradient", {
+                                            Color = ColorSequence.new({
+                                                ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                                                ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                                                ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                                            }),
+                                            Rotation = 45,
+                                            Parent = option
+                                        })
+                                    end
                                 end
                                 
                                 dropdown.SelectedLabel.Text = #dropdown.Value > 0 
@@ -1980,9 +2890,33 @@ function NeonUI:CreateWindow(options)
                                 -- Actualizar apariencia
                                 for _, otherOption in pairs(dropdown.OptionScroll:GetChildren()) do
                                     if otherOption:IsA("TextButton") then
-                                        otherOption.BackgroundColor3 = otherOption.Text == value 
-                                            and NeonUI.Theme.Accent 
-                                            or NeonUI.Theme.Secondary
+                                        if otherOption.Text == value then
+                                            otherOption.BackgroundColor3 = NeonUI.Theme.Accent
+                                            
+                                            -- Si es tema lava, añadir efectos
+                                            if window.Theme == "Lava" and not otherOption:FindFirstChildOfClass("UIGradient") then
+                                                Utility:Create("UIGradient", {
+                                                    Color = ColorSequence.new({
+                                                        ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                                                        ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                                                        ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                                                    }),
+                                                    Rotation = 45,
+                                                    Parent = otherOption
+                                                })
+                                            end
+                                        else
+                                            otherOption.BackgroundColor3 = NeonUI.Theme.Secondary
+                                            
+                                            -- Si es tema lava, quitar efectos
+                                            if window.Theme == "Lava" then
+                                                for _, child in pairs(otherOption:GetChildren()) do
+                                                    if child:IsA("UIGradient") then
+                                                        child:Destroy()
+                                                    end
+                                                end
+                                            end
+                                        end
                                     end
                                 end
                                 
@@ -1996,6 +2930,19 @@ function NeonUI:CreateWindow(options)
                             end
                             
                             dropdown.Callback(dropdown.Value)
+                        end)
+                        
+                        -- Efectos de hover
+                        option.MouseEnter:Connect(function()
+                            if (dropdown.Multi and not table.find(dropdown.Value, value)) or (not dropdown.Multi and dropdown.Value ~= value) then
+                                Utility:Tween(option, {BackgroundColor3 = NeonUI.Theme.Secondary:Lerp(NeonUI.Theme.Accent, 0.2)}, 0.2)
+                            end
+                        end)
+                        
+                        option.MouseLeave:Connect(function()
+                            if (dropdown.Multi and not table.find(dropdown.Value, value)) or (not dropdown.Multi and dropdown.Value ~= value) then
+                                Utility:Tween(option, {BackgroundColor3 = NeonUI.Theme.Secondary}, 0.2)
+                            end
                         end)
                     end
                     
@@ -2022,11 +2969,24 @@ function NeonUI:CreateWindow(options)
                         dropdown.OptionList.Visible = true
                         Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
                         Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, listHeight)}, 0.2)
+                        
+                        -- Si es tema lava, añadir efectos al desplegar
+                        if window.Theme == "Lava" then
+                            Utility:CreateGlow(dropdown.DropdownFrame, NeonUI.Theme.Glow, 1.2)
+                        end
                     else
                         Utility:Tween(dropdown.Arrow, {Rotation = 90}, 0.2)
                         Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+                        
                         task.wait(0.2)
                         dropdown.OptionList.Visible = false
+                        
+                        -- Si es tema lava, quitar efectos al cerrar
+                        if window.Theme == "Lava" then
+                            if dropdown.DropdownFrame:FindFirstChild("Glow") then
+                                dropdown.DropdownFrame.Glow:Destroy()
+                            end
+                        end
                     end
                 end
                 
@@ -2116,12 +3076,59 @@ function NeonUI:CreateWindow(options)
         if window.CurrentTab then
             window.CurrentTab.Container.Visible = false
             Utility:Tween(window.CurrentTab.Button, {BackgroundColor3 = NeonUI.Theme.Primary}, 0.2)
+            
+            -- Si es tema lava, quitar efectos
+            if window.Theme == "Lava" then
+                -- Eliminar gradiente si existe
+                for _, child in pairs(window.CurrentTab.Button:GetChildren()) do
+                    if child:IsA("UIGradient") then
+                        child:Destroy()
+                    end
+                    
+                    -- Restaurar color del texto
+                    if child:IsA("TextLabel") then
+                        child.TextColor3 = NeonUI.Theme.Text
+                    end
+                    
+                    -- Restaurar color del icono
+                    if child:IsA("ImageLabel") then
+                        child.ImageColor3 = NeonUI.Theme.Text
+                    end
+                end
+            end
         end
         
         -- Mostrar nuevo tab
         window.CurrentTab = tab
         tab.Container.Visible = true
-        Utility:Tween(tab.Button, {BackgroundColor3 = NeonUI.Theme.Accent}, 0.2)
+        Utility:Tween(tab.Button, {BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or NeonUI.Theme.Accent}, 0.2)
+        
+        -- Si es tema lava, añadir efectos
+        if window.Theme == "Lava" then
+            -- Añadir gradiente
+            Utility:Create("UIGradient", {
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+                    ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                    ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+                }),
+                Rotation = 90,
+                Parent = tab.Button
+            })
+            
+            -- Cambiar color del texto
+            if tab.TitleLabel then
+                tab.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end
+            
+            -- Cambiar color del icono
+            if tab.IconImage then
+                tab.IconImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+            end
+            
+            -- Añadir efecto de brillo
+            Utility:CreateGlow(tab.Button, NeonUI.Theme.Glow, 1.2)
+        end
     end
     
     -- Obtener elementos por flag
