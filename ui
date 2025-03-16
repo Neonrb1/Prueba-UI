@@ -91,50 +91,37 @@ function Utility:Ripple(instance)
     end)
 end
 
--- Arrastrar elementos - Mejorado para móvil
+-- Arrastrar elementos - Versión mejorada
 function Utility:Draggable(frame, dragui)
-    local dragging, dragInput, dragStart, startPos
-    local dragDelay = 0.05 -- Pequeño retraso para distinguir entre clic y arrastre en móvil
-    local clickTime = 0
-    local dragDistance = 5 -- Distancia mínima para considerar un arrastre
-    
-    local function updateDrag(input)
-        local delta = input.Position - dragStart
-        if (delta.Magnitude > dragDistance) then -- Solo mover si supera la distancia mínima
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end
-    
+    local dragging = false
+    local dragStart, startPos
+
     dragui.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            clickTime = tick()
+            dragging = true
             dragStart = input.Position
             startPos = frame.Position
+            
+            local connection
+            connection = RunService.RenderStepped:Connect(function()
+                if dragging then
+                    local delta = UserInputService:GetMouseLocation() - dragStart
+                    frame.Position = UDim2.new(
+                        startPos.X.Scale, 
+                        startPos.X.Offset + delta.X, 
+                        startPos.Y.Scale, 
+                        startPos.Y.Offset + delta.Y
+                    )
+                else
+                    connection:Disconnect()
+                end
+            end)
             
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
                 end
             end)
-            
-            -- Solo activar el arrastre después de un pequeño retraso (para móvil)
-            task.delay(dragDelay, function()
-                if (tick() - clickTime > dragDelay) then
-                    dragging = true
-                end
-            end)
-        end
-    end)
-    
-    dragui.InputChanged:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
-            dragInput = input
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            updateDrag(input)
         end
     end)
 end
@@ -861,7 +848,7 @@ function NeonUI:CreateWindow(options)
     local window = {
         Title = options.Title or "NeonUI",
         SubTitle = options.SubTitle or "",
-        Size = options.Size or (isMobile and UDim2.fromOffset(450, 350) or UDim2.fromOffset(550, 400)),
+        Size = options.Size or (isMobile and UDim2.fromOffset(440, 350) or UDim2.fromOffset(550, 400)),
         Position = options.Position or UDim2.fromScale(0.5, 0.5),
         Theme = options.Theme or "Lava",
         Tabs = {},
