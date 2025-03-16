@@ -2289,9 +2289,9 @@ slider.SliderButton.MouseButton1Down:Connect(function()
     end)
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        if sliding then
+            UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+         if sliding then
             sliding = false
             slider.ValueLabel.Visible = false
             
@@ -2898,9 +2898,9 @@ end)
                     Position = UDim2.new(0, 0, 1, 5),
                     Size = UDim2.new(1, 0, 0, 0),
                     Visible = false,
-                    ZIndex = 50, -- ZIndex más alto para asegurar que aparezca encima de otros elementos
-                    ClipsDescendants = false, -- Permitir que el contenido se extienda fuera del marco
-                    Parent = game.CoreGui:FindFirstChild("NeonUI") -- Cambiar parent al CoreGui para evitar recortes
+                    ZIndex = 50,
+                    ClipsDescendants = false,
+                    Parent = dropdown.DropdownFrame
                 })
                 
                 -- Bordes redondeados para lista
@@ -2930,11 +2930,10 @@ end)
                     Position = UDim2.fromOffset(0, 0),
                     Size = UDim2.new(1, 0, 1, 0),
                     CanvasSize = UDim2.new(0, 0, 0, 0),
-                    ScrollBarThickness = 6, -- Ligeramente más grueso para facilitar el uso en móvil
+                    ScrollBarThickness = 6,
                     ScrollBarImageColor3 = NeonUI.Theme.Accent,
                     ScrollingEnabled = true,
-                    ScrollingDirection = Enum.ScrollingDirection.Y,
-                    ZIndex = 51, -- Asegurar que esté por encima del OptionList
+                    ZIndex = 51,
                     Parent = dropdown.OptionList
                 })
                 
@@ -3109,11 +3108,22 @@ end)
                     end
                     
                     -- Actualizar tamaño del canvas
-                    local listLayout = dropdown.OptionScroll:FindFirstChildOfClass("UIListLayout")
-                    if listLayout then
-                        dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-                    end
-                end
+                    -- Actualizar tamaño del canvas
+local listLayout = dropdown.OptionScroll:FindFirstChildOfClass("UIListLayout")
+if listLayout then
+    dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+    
+    -- Asegurar desplazamiento adecuado para listas largas
+    if #dropdown.Values > 5 then
+        local actualHeight = listLayout.AbsoluteContentSize.Y + 10
+        dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, actualHeight)
+        
+        -- Asegurarse de que la barra de desplazamiento sea visible
+        dropdown.OptionScroll.ScrollingEnabled = true
+        dropdown.OptionScroll.ScrollBarImageTransparency = 0
+    end
+end
+end
                 
                 -- Función para alternar visibilidad
                 function dropdown:Toggle(state)
@@ -3124,34 +3134,21 @@ end)
                     dropdown.Open = state
                     
                     if state then
-                        -- Calcular altura para las opciones (máximo 6 opciones visibles o el total si hay menos)
-                        local optionCount = math.min(#dropdown.Values, 6)
+                        -- Calcular altura para las opciones (máximo 5 opciones visibles)
+                        local optionCount = math.min(#dropdown.Values, 5)
                         local listHeight = (optionCount * 28) + 10
                         
-                        -- Ajustar posición para pantallas móviles si es necesario
-                        if isMobile then
-                            -- Obtener posición absoluta en pantalla
-                            local absolutePos = dropdown.DropdownFrame.AbsolutePosition
-                            local absoluteSize = dropdown.DropdownFrame.AbsoluteSize
-                            
-                            -- Calcular posición relativa a CoreGui
-                            local guiService = game:GetService("GuiService")
-                            local screenSize = guiService:GetScreenResolution()
-                            
-                            -- Ajustar posición para evitar que se salga de la pantalla
-                            local posY = (absolutePos.Y + absoluteSize.Y + 5) / screenSize.Y
-                            local posX = absolutePos.X / screenSize.X
-                            
-                            dropdown.OptionList.Position = UDim2.new(posX, 0, 0, absolutePos.Y + absoluteSize.Y + 5)
-                            dropdown.OptionList.Size = UDim2.new(dropdown.DropdownFrame.AbsoluteSize.X / screenSize.X, 0, 0, 0)
-                        end
-                        
                         dropdown.OptionList.Visible = true
-                        Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
-                        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(dropdown.DropdownFrame.Size.X.Scale, dropdown.DropdownFrame.Size.X.Offset, 0, listHeight)}, 0.2)
+                        dropdown.OptionList.ZIndex = 50
+                        dropdown.OptionScroll.ZIndex = 51
                         
-                        -- Ajustar tamaño del canvas para mostrar todas las opciones
-                        dropdown.OptionScroll.CanvasSize = UDim2.new(0, 0, 0, #dropdown.Values * 28 + 10)
+                        -- Permitir que la lista se extienda más allá de los límites
+                        dropdown.OptionList.ClipsDescendants = false
+                        dropdown.Container.ClipsDescendants = false
+                        dropdown.Container.Parent.ClipsDescendants = false
+                        
+                        Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
+                        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(1, 0, 0, listHeight)}, 0.2)
                         
                         -- Si es tema lava, añadir efectos al desplegar
                         if window.Theme == "Lava" then
@@ -3229,17 +3226,8 @@ end)
                 
                 -- Añadir a la lista de elementos
                 table.insert(section.Elements, dropdown)
-
-                -- Añadir código para ajustar el dropdown cuando cambia el tamaño de la ventana
-                UserInputService.WindowSizeChanged:Connect(function()
-              if dropdown.Open then
-              dropdown:Toggle(false)
-              task.wait(0.1)
-              dropdown:Toggle(true)
-            end
-            end)
-
-            return dropdown
+                
+                return dropdown
             end
             
             return section
