@@ -806,7 +806,7 @@ function NeonUI:GetIcon(name)
         compass = "7733857969",
         map = "7733837011",
         ["map-pin"] = "7733824551",
-        award = "7743823882",
+        award = "10709769406",
         upload = "7734172322",
         download = "7733982464",
         camera = "7733930958",
