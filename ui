@@ -767,7 +767,7 @@ function NeonUI:GetIcon(name)
         minus = "7734062493",
         search = "7734093360",
         box = "7734155436",
-        folder = "7734172055",
+        close = "10734951535",
         chevron = "7734238686",
         gear = "7734053495",
         bell = "7743855514",
@@ -1068,7 +1068,7 @@ function NeonUI:CreateWindow(options)
         BackgroundTransparency = 1,
         Position = UDim2.new(1, -52, 0, 8),
         Size = UDim2.fromOffset(20, 20),
-        Image = "rbxassetid://7733774602",
+        Image = "rbxassetid://10734951535",
         ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
     })
