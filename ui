@@ -1600,20 +1600,37 @@ function NeonUI:CreateWindow(options)
                 
                 -- Si es tema lava, añadir efectos
                 if window.Theme == "Lava" then
-                    -- Agregar gradiente
-                    Utility:Create("UIGradient", {
-                        Color = ColorSequence.new({
-                            ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
-                            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
-                            ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
-                        }),
-                        Rotation = 45,
-                        Parent = button.ButtonElement
-                    })
-                    
-                    -- Añadir brillo
-                    Utility:CreateGlow(button.ButtonElement, NeonUI.Theme.Glow, 1.2)
-                end
+                 -- Eliminar el texto del botón
+                 button.ButtonElement.Text = ""
+    
+                -- Crear una etiqueta de texto encima
+                local buttonText = Utility:Create("TextLabel", {
+                Name = "ButtonText",
+                BackgroundTransparency = 1,
+                Position = UDim2.fromScale(0, 0),
+                Size = UDim2.fromScale(1, 1),
+                Font = NeonUI.Theme.Font,
+                Text = "CLICK",
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = NeonUI.Theme.FontSize,
+                ZIndex = button.ButtonElement.ZIndex + 1,
+                Parent = button.ButtonElement
+    })
+    
+    -- Agregar gradiente (solo al fondo del botón)
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, NeonUI.Theme.Accent),
+            ColorSequenceKeypoint.new(0.5, NeonUI.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+            ColorSequenceKeypoint.new(1, NeonUI.Theme.Accent)
+        }),
+        Rotation = 45,
+        Parent = button.ButtonElement
+    })
+    
+    -- Añadir brillo
+    Utility:CreateGlow(button.ButtonElement, NeonUI.Theme.Glow, 1.2)
+end
                 
                 -- Título y descripción
                 if button.Description then
