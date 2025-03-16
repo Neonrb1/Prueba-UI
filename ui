@@ -91,39 +91,56 @@ function Utility:Ripple(instance)
     end)
 end
 
--- Arrastrar elementos - Versión mejorada
+-- Arrastrar elementos - Implementación completamente revisada
 function Utility:Draggable(frame, dragui)
-    local dragging = false
+    -- Variables locales para el arrastre
     local dragStart, startPos
-
-    dragui.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            
-            local connection
-            connection = RunService.RenderStepped:Connect(function()
-                if dragging then
-                    local delta = UserInputService:GetMouseLocation() - dragStart
-                    frame.Position = UDim2.new(
-                        startPos.X.Scale, 
-                        startPos.X.Offset + delta.X, 
-                        startPos.Y.Scale, 
-                        startPos.Y.Offset + delta.Y
-                    )
-                else
-                    connection:Disconnect()
-                end
-            end)
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
+    local dragging = false
+    
+    -- Función para iniciar el arrastre
+    local function beginDrag(input)
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+    
+    -- Función para actualizar la posición durante el arrastre
+    local function updateDrag(input)
+        if not dragging then return end
+        
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+    
+    -- Función para terminar el arrastre
+    local function endDrag()
+        dragging = false
+    end
+    
+    -- Eventos para PC
+    dragui.MouseButton1Down:Connect(beginDrag)
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            updateDrag(input)
         end
     end)
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            endDrag()
+        end
+    end)
+    
+    -- Eventos para dispositivos móviles
+    if game:GetService("UserInputService").TouchEnabled then
+        dragui.TouchStarted:Connect(beginDrag)
+        dragui.TouchMoved:Connect(updateDrag)
+        dragui.TouchEnded:Connect(endDrag)
+    end
 end
 
 -- Crear efecto de resplandor de lava
