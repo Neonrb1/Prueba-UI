@@ -2244,20 +2244,70 @@ end
                     end
                 end)
                 
-                UserInputService.InputChanged:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                        if sliding then
-                            local mousePos = input.Position.X
-                            local framePos = slider.SliderFrame.AbsolutePosition.X
-                            local frameSize = slider.SliderFrame.AbsoluteSize.X
-                            
-                            local relativePos = math.clamp((mousePos - framePos) / frameSize, 0, 1)
-                            local value = slider.Min + (relativePos * (slider.Max - slider.Min))
-                            
-                            slider:Set(value)
-                        end
-                    end
-                end)
+                local sliderInputChangedEvent = nil
+
+slider.SliderButton.MouseButton1Down:Connect(function()
+    sliding = true
+    slider.ValueLabel.Visible = true
+    
+    -- Si es tema lava, añadir efecto pulsante al arrastrar
+    if window.Theme == "Lava" then
+        Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(20, 20)}, 0.2)
+    end
+    
+    -- Conectar el evento solo cuando se inicia el arrastre
+    if sliderInputChangedEvent then
+        sliderInputChangedEvent:Disconnect()
+    end
+    
+    sliderInputChangedEvent = UserInputService.InputChanged:Connect(function(input)
+        if not sliding then return end
+        
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            -- Verificar si el input está dentro del área del slider para dispositivos táctiles
+            if isMobile and input.UserInputType == Enum.UserInputType.Touch then
+                local inputPos = Vector2.new(input.Position.X, input.Position.Y)
+                local sliderPos = slider.SliderFrame.AbsolutePosition
+                local sliderSize = slider.SliderFrame.AbsoluteSize
+                
+                -- Comprobar si está verticalmente cerca del slider (tolerancia mayor para facilitar el uso)
+                local verticalTolerance = 50
+                if math.abs(inputPos.Y - (sliderPos.Y + sliderSize.Y/2)) > verticalTolerance then
+                    return
+                end
+            end
+            
+            local mousePos = input.Position.X
+            local framePos = slider.SliderFrame.AbsolutePosition.X
+            local frameSize = slider.SliderFrame.AbsoluteSize.X
+            
+            local relativePos = math.clamp((mousePos - framePos) / frameSize, 0, 1)
+            local value = slider.Min + (relativePos * (slider.Max - slider.Min))
+            
+            slider:Set(value)
+        end
+    end)
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if sliding then
+            sliding = false
+            slider.ValueLabel.Visible = false
+            
+            -- Desconectar el evento cuando se termina el arrastre
+            if sliderInputChangedEvent then
+                sliderInputChangedEvent:Disconnect()
+                sliderInputChangedEvent = nil
+            end
+            
+            -- Si es tema lava, restaurar tamaño normal
+            if window.Theme == "Lava" then
+                Utility:Tween(slider.SliderCircle, {Size = UDim2.fromOffset(16, 16)}, 0.2)
+            end
+        end
+    end
+end)
                 
                 -- Añadir a la lista de elementos
                 table.insert(section.Elements, slider)
