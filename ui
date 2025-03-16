@@ -861,7 +861,7 @@ function NeonUI:CreateWindow(options)
     local window = {
         Title = options.Title or "NeonUI",
         SubTitle = options.SubTitle or "",
-        Size = options.Size or (isMobile and UDim2.fromOffset(550, 300) or UDim2.fromOffset(550, 400)),
+        Size = options.Size or (isMobile and UDim2.fromOffset(400, 400) or UDim2.fromOffset(550, 400)),
         Position = options.Position or UDim2.fromScale(0.5, 0.5),
         Theme = options.Theme or "Lava",
         Tabs = {},
@@ -1115,7 +1115,7 @@ function NeonUI:CreateWindow(options)
         BackgroundTransparency = self.Theme.Transparency,
         BorderSizePixel = 0,
         Position = UDim2.fromOffset(12, 48),
-        Size = UDim2.new(0, 140, 1, -60),
+        Size = UDim2.new(0, isMobile and 120 or 140, 1, -60),
         Parent = window.Frame
     })
     
@@ -1180,13 +1180,13 @@ function NeonUI:CreateWindow(options)
     
     -- Contenedor de contenido
     window.ContentFrame = Utility:Create("Frame", {
-        Name = "ContentFrame",
-        BackgroundColor3 = self.Theme.Secondary,
-        BackgroundTransparency = self.Theme.Transparency,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 164, 0, 48),
-        Size = UDim2.new(1, -176, 1, -60),
-        Parent = window.Frame
+    Name = "ContentFrame",
+    BackgroundColor3 = self.Theme.Secondary,
+    BackgroundTransparency = self.Theme.Transparency,
+    BorderSizePixel = 0,
+    Position = UDim2.new(0, isMobile and 134 or 164, 0, 48),
+    Size = UDim2.new(1, isMobile and -146 or -176, 1, -60),
+    Parent = window.Frame
     })
     
     -- Bordes redondeados para contenido
