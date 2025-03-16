@@ -861,7 +861,7 @@ function NeonUI:CreateWindow(options)
     local window = {
         Title = options.Title or "NeonUI",
         SubTitle = options.SubTitle or "",
-        Size = options.Size or (isMobile and UDim2.fromOffset(350, 400) or UDim2.fromOffset(550, 400)),
+        Size = options.Size or (isMobile and UDim2.fromOffset(550, 300) or UDim2.fromOffset(550, 400)),
         Position = options.Position or UDim2.fromScale(0.5, 0.5),
         Theme = options.Theme or "Lava",
         Tabs = {},
