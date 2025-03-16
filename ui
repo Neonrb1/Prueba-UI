@@ -2968,20 +2968,21 @@ end)
                     
                     -- Reconstruir lista de opciones
                     for i, value in ipairs(dropdown.Values) do
-                        local option = Utility:Create("TextButton", {
-                            Name = "Option_" .. i,
-                            BackgroundColor3 = dropdown.Multi 
-                                and (table.find(dropdown.Value, value) and NeonUI.Theme.Accent or NeonUI.Theme.Secondary)
-                                or (dropdown.Value == value and NeonUI.Theme.Accent or NeonUI.Theme.Secondary),
-                            BorderSizePixel = 0,
-                            Size = UDim2.new(1, 0, 0, 26),
-                            Font = NeonUI.Theme.Font,
-                            Text = value,
-                            TextColor3 = NeonUI.Theme.Text,
-                            TextSize = NeonUI.Theme.FontSize,
-                            ZIndex = 6,
-                            Parent = dropdown.OptionScroll
-                        })
+                        -- Crear opción con tamaño adaptado a dispositivos móviles
+                    local option = Utility:Create("TextButton", {
+                   Name = "Option_" .. i,
+                   BackgroundColor3 = dropdown.Multi 
+                   and (table.find(dropdown.Value, value) and NeonUI.Theme.Accent or NeonUI.Theme.Secondary)
+                   or (dropdown.Value == value and NeonUI.Theme.Accent or NeonUI.Theme.Secondary),
+                  BorderSizePixel = 0,
+                  Size = UDim2.new(1, 0, 0, isMobile and 32 or 26), -- Mayor altura en dispositivos móviles
+                  Font = NeonUI.Theme.Font,
+                  Text = value,
+                  TextColor3 = NeonUI.Theme.Text,
+                  TextSize = isMobile and NeonUI.Theme.FontSize + 2 or NeonUI.Theme.FontSize, -- Texto más grande en móviles
+                  ZIndex = 6,
+                  Parent = dropdown.OptionScroll
+                  })
                         
                         -- Bordes redondeados para opción
                         Utility:Create("UICorner", {
@@ -3125,63 +3126,83 @@ if listLayout then
 end
 end
                 
-                                -- Función para alternar visibilidad
-                                function dropdown:Toggle(state)
-                                    if state == nil then
-                                        state = not dropdown.Open
-                                    end
-                                    
-                                    dropdown.Open = state
-                                    
-                                    if state then
-                                        -- Calcular altura para las opciones (máximo 8 opciones visibles)
-                                        local optionCount = math.min(#dropdown.Values, 8)
-                                        local listHeight = (optionCount * 28) + 10
-                                        
-                                        dropdown.OptionList.Visible = true
-                                        dropdown.OptionList.ZIndex = 100
-                                        dropdown.OptionScroll.ZIndex = 101
-                                        
-                                        -- Asegurar que la lista se extienda más allá de los límites
-                                        dropdown.OptionList.ClipsDescendants = true
-                                        dropdown.Container.ClipsDescendants = false
-                                        dropdown.Container.Parent.ClipsDescendants = false
-                                        section.ElementsContainer.ClipsDescendants = false
-                                        section.Container.ClipsDescendants = false
-                                        tab.Container.ClipsDescendants = false
-                                        
-                                        -- Colocar la lista desplegable sobre todo
-                                        dropdown.OptionList.Parent = NeonUI.Container
-                                        
-                                        -- Ajustar posición global
-                                        local absPos = dropdown.DropdownFrame.AbsolutePosition
-                                        local absSize = dropdown.DropdownFrame.AbsoluteSize
-                                        dropdown.OptionList.Position = UDim2.fromOffset(absPos.X, absPos.Y + absSize.Y + 5)
-                                        dropdown.OptionList.Size = UDim2.fromOffset(absSize.X, 0)
-                                        
-                                        Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
-                                        Utility:Tween(dropdown.OptionList, {Size = UDim2.fromOffset(absSize.X, listHeight)}, 0.2)
-                                        
-                                        -- Si es tema lava, añadir efectos al desplegar
-                                        if window.Theme == "Lava" then
-                                            Utility:CreateGlow(dropdown.DropdownFrame, NeonUI.Theme.Glow, 1.2)
-                                        end
-                                    else
-                                        Utility:Tween(dropdown.Arrow, {Rotation = 90}, 0.2)
-                                        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(0, dropdown.OptionList.AbsoluteSize.X, 0, 0)}, 0.2)
-                                        
-                                        task.wait(0.2)
-                                        dropdown.OptionList.Visible = false
-                                        dropdown.OptionList.Parent = dropdown.DropdownFrame
-                                        
-                                        -- Si es tema lava, quitar efectos al cerrar
-                                        if window.Theme == "Lava" then
-                                            if dropdown.DropdownFrame:FindFirstChild("Glow") then
-                                                dropdown.DropdownFrame.Glow:Destroy()
-                                            end
-                                        end
-                                    end
-                                end
+                    -- Función para alternar visibilidad
+function dropdown:Toggle(state)
+    if state == nil then
+        state = not dropdown.Open
+    end
+    
+    dropdown.Open = state
+    
+    if state then
+        -- Calcular altura para las opciones (máximo 8 opciones visibles)
+        local optionCount = math.min(#dropdown.Values, 8)
+        local listHeight = (optionCount * 28) + 10
+        
+        dropdown.OptionList.Visible = true
+        dropdown.OptionList.ZIndex = 100
+        dropdown.OptionScroll.ZIndex = 101
+        
+        -- Asegurar que la lista se extienda más allá de los límites
+        dropdown.OptionList.ClipsDescendants = true
+        dropdown.Container.ClipsDescendants = false
+        dropdown.Container.Parent.ClipsDescendants = false
+        section.ElementsContainer.ClipsDescendants = false
+        section.Container.ClipsDescendants = false
+        tab.Container.ClipsDescendants = false
+        
+        -- Colocar la lista desplegable sobre todo
+        dropdown.OptionList.Parent = NeonUI.Container
+        
+        -- Ajustar posición global considerando el entorno móvil
+        local absPos = dropdown.DropdownFrame.AbsolutePosition
+        local absSize = dropdown.DropdownFrame.AbsoluteSize
+        local screenSize = NeonUI.Container.AbsoluteSize
+        
+        -- Verificar si es móvil para ajustar posición
+        if isMobile then
+            -- Asegurar que el dropdown se muestre dentro de los límites de la pantalla
+            local xPos = math.clamp(absPos.X, 10, screenSize.X - absSize.X - 10)
+            local yPos = absPos.Y + absSize.Y + 5
+            
+            -- Si el dropdown se saldría de la pantalla hacia abajo, mostrarlo hacia arriba
+            if yPos + listHeight > screenSize.Y - 40 then
+                yPos = absPos.Y - listHeight - 5
+            end
+            
+            dropdown.OptionList.Position = UDim2.fromOffset(xPos, yPos)
+            dropdown.OptionList.Size = UDim2.fromOffset(absSize.X, 0)
+            
+            -- Hacer la lista desplegable un poco más ancha en móviles para facilitar la selección
+            Utility:Tween(dropdown.OptionList, {Size = UDim2.fromOffset(absSize.X, listHeight)}, 0.2)
+        else
+            dropdown.OptionList.Position = UDim2.fromOffset(absPos.X, absPos.Y + absSize.Y + 5)
+            dropdown.OptionList.Size = UDim2.fromOffset(absSize.X, 0)
+            Utility:Tween(dropdown.OptionList, {Size = UDim2.fromOffset(absSize.X, listHeight)}, 0.2)
+        end
+        
+        Utility:Tween(dropdown.Arrow, {Rotation = 180}, 0.2)
+        
+        -- Si es tema lava, añadir efectos al desplegar
+        if window.Theme == "Lava" then
+            Utility:CreateGlow(dropdown.DropdownFrame, NeonUI.Theme.Glow, 1.2)
+        end
+    else
+        Utility:Tween(dropdown.Arrow, {Rotation = 90}, 0.2)
+        Utility:Tween(dropdown.OptionList, {Size = UDim2.new(0, dropdown.OptionList.AbsoluteSize.X, 0, 0)}, 0.2)
+        
+        task.wait(0.2)
+        dropdown.OptionList.Visible = false
+        dropdown.OptionList.Parent = dropdown.DropdownFrame
+        
+        -- Si es tema lava, quitar efectos al cerrar
+        if window.Theme == "Lava" then
+            if dropdown.DropdownFrame:FindFirstChild("Glow") then
+                dropdown.DropdownFrame.Glow:Destroy()
+            end
+        end
+    end
+end
                 
                 -- Función para establecer valor
                 function dropdown:Set(value)
