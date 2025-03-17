@@ -17,6 +17,8 @@
 -- Servicios
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+-- Asegúrate de añadir RunService al principio del script
+local RunService = game:GetService("RunService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -3907,114 +3909,105 @@ resultButton.MouseButton1Click:Connect(function()
             local originalColor = instance.BackgroundColor3
             local originalStroke = nil
             
-            -- Calcular posición para scroll
-            local containerPos = 0
+            -- Obtener el contenedor de desplazamiento
             local parentScrollFrame = result.ParentTab.Container
             
-            -- Intentar encontrar la posición vertical absoluta del elemento
-            local success, posY = pcall(function()
-                return instance.AbsolutePosition.Y - parentScrollFrame.AbsolutePosition.Y + parentScrollFrame.CanvasPosition.Y
-            end)
-            
-            if success then
-                containerPos = posY - (parentScrollFrame.AbsoluteSize.Y / 3) -- Centrar verticalmente
-            else
-                -- Fallback al método anterior si falla
-                containerPos = instance.Position.Y.Offset
-            end
-            
-            -- Desplazarse al elemento con animación
-            local currentPos = parentScrollFrame.CanvasPosition.Y
-            local targetPos = math.max(0, containerPos)
-            
-            -- Animar el scroll
-            local scrollDuration = 0.4
-            local startTime = tick()
-            
-            local scrollConnection
-            scrollConnection = RunService.RenderStepped:Connect(function()
-                local elapsed = tick() - startTime
-                local progress = math.min(elapsed / scrollDuration, 1)
-                local easedProgress = 1 - (1 - progress) * (1 - progress) -- Ease out quad
+            -- Enfoque directo para navegar al elemento
+            if parentScrollFrame:IsA("ScrollingFrame") then
+                -- Obtener la posición absoluta del elemento y del marco de desplazamiento
+                local elementAbsPos = instance.AbsolutePosition
+                local scrollFrameAbsPos = parentScrollFrame.AbsolutePosition
                 
-                local newY = currentPos + (targetPos - currentPos) * easedProgress
-                parentScrollFrame.CanvasPosition = Vector2.new(0, newY)
+                -- Calcular la posición relativa dentro del marco de desplazamiento
+                local relativePos = elementAbsPos.Y - scrollFrameAbsPos.Y
                 
-                if progress >= 1 then
-                    scrollConnection:Disconnect()
+                -- Ajustar la posición del canvas considerando la posición actual
+                local targetCanvasPos = parentScrollFrame.CanvasPosition.Y + relativePos - 50
+                
+                -- Prevenir desplazamientos negativos
+                targetCanvasPos = math.max(0, targetCanvasPos)
+                
+                -- Imprimir información de depuración
+                print("Navegando a elemento:", result.Name)
+                print("Posición actual:", parentScrollFrame.CanvasPosition.Y)
+                print("Posición objetivo:", targetCanvasPos)
+                
+                -- Establecer directamente la posición
+                parentScrollFrame.CanvasPosition = Vector2.new(0, targetCanvasPos)
+                
+                -- Aplicar efectos visuales después de establecer la posición
+                task.wait(0.1)
+                
+                -- 1. Añadir un stroke pulsante
+                originalStroke = instance:FindFirstChildOfClass("UIStroke")
+                local stroke = originalStroke and originalStroke:Clone() or Utility:Create("UIStroke", {
+                    Color = self.Theme.Accent,
+                    Thickness = 2,
+                    Parent = instance
+                })
+                
+                -- Si ya tenía un stroke, guardarlo para restaurar después
+                if originalStroke then
+                    originalStroke.Enabled = false
+                else
+                    stroke.Name = "HighlightStroke"
+                end
+                
+                -- 2. Cambiar color de fondo con animación
+                Utility:Tween(instance, {
+                    BackgroundColor3 = self.Theme.Accent:Lerp(originalColor, 0.7)
+                }, 0.3)
+                
+                -- 3. Crear efecto de brillo si es tema lava
+                if window.Theme == "Lava" and not instance:FindFirstChild("Glow") then
+                    Utility:CreateGlow(instance, self.Theme.Glow, 1.3)
+                end
+                
+                -- Animar stroke pulsante
+                local startTime = tick()
+                local pulseCount = 0
+                local maxPulses = 3
+                local pulseConnection
+                
+                pulseConnection = RunService.Heartbeat:Connect(function()
+                    local pulseFactor = (1 + math.sin(tick() * 5)) / 2
+                    stroke.Thickness = 1.5 + pulseFactor * 1.5
                     
-                    -- Una vez que el scroll terminó, añadir efectos visuales
-                    
-                    -- 1. Añadir un stroke pulsante
-                    originalStroke = instance:FindFirstChildOfClass("UIStroke")
-                    local stroke = originalStroke and originalStroke:Clone() or Utility:Create("UIStroke", {
-                        Color = self.Theme.Accent,
-                        Thickness = 2,
-                        Parent = instance
-                    })
-                    
-                    -- Si ya tenía un stroke, guardarlo para restaurar después
-                    if originalStroke then
-                        originalStroke.Enabled = false
-                    else
-                        stroke.Name = "HighlightStroke"
-                    end
-                    
-                    -- 2. Cambiar color de fondo con animación
-                    Utility:Tween(instance, {
-                        BackgroundColor3 = self.Theme.Accent:Lerp(originalColor, 0.7)
-                    }, 0.3)
-                    
-                    -- 3. Crear efecto de brillo si es tema lava
-                    if window.Theme == "Lava" and not instance:FindFirstChild("Glow") then
-                        Utility:CreateGlow(instance, self.Theme.Glow, 1.3)
-                    end
-                    
-                    -- Animar stroke pulsante
-                    local pulseCount = 0
-                    local maxPulses = 3
-                    local pulseConnection
-                    
-                    pulseConnection = RunService.Heartbeat:Connect(function()
-                        local pulseFactor = (1 + math.sin(tick() * 5)) / 2
-                        stroke.Thickness = 1.5 + pulseFactor * 1.5
+                    if tick() - startTime > 0.8 * maxPulses then
+                        pulseCount = pulseCount + 1
                         
-                        if tick() - startTime > 0.8 * maxPulses then
-                            pulseCount = pulseCount + 1
+                        if pulseCount >= maxPulses then
+                            pulseConnection:Disconnect()
                             
-                            if pulseCount >= maxPulses then
-                                pulseConnection:Disconnect()
-                                
-                                -- Restaurar estado original
-                                Utility:Tween(instance, {
-                                    BackgroundColor3 = originalColor
-                                }, 0.5)
-                                
-                                Utility:Tween(stroke, {
-                                    Thickness = 0
-                                }, 0.5)
-                                
-                                -- Eliminar efectos después de la animación
-                                task.delay(0.5, function()
-                                    if originalStroke then
-                                        originalStroke.Enabled = true
-                                        if stroke and stroke.Parent then
-                                            stroke:Destroy()
-                                        end
-                                    elseif stroke and stroke.Parent then
+                            -- Restaurar estado original
+                            Utility:Tween(instance, {
+                                BackgroundColor3 = originalColor
+                            }, 0.5)
+                            
+                            Utility:Tween(stroke, {
+                                Thickness = 0
+                            }, 0.5)
+                            
+                            -- Eliminar efectos después de la animación
+                            task.delay(0.5, function()
+                                if originalStroke then
+                                    originalStroke.Enabled = true
+                                    if stroke and stroke.Parent then
                                         stroke:Destroy()
                                     end
-                                    
-                                    -- Eliminar glow si fue añadido
-                                    if window.Theme == "Lava" and instance:FindFirstChild("Glow") then
-                                        instance.Glow:Destroy()
-                                    end
-                                end)
-                            end
+                                elseif stroke and stroke.Parent then
+                                    stroke:Destroy()
+                                end
+                                
+                                -- Eliminar glow si fue añadido
+                                if window.Theme == "Lava" and instance:FindFirstChild("Glow") then
+                                    instance.Glow:Destroy()
+                                end
+                            end)
                         end
-                    end)
-                end
-            end)
+                    end
+                end)
+            end
         end
     end
 end)
