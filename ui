@@ -1076,12 +1076,46 @@ function NeonUI:CreateWindow(options)
     -- Botón de búsqueda
 window.SearchButton = Utility:Create("ImageButton", {
     Name = "SearchButton",
-    BackgroundTransparency = 1,
+    BackgroundTransparency = 0.5,
+    BackgroundColor3 = self.Theme.Accent,
     Position = UDim2.new(1, -76, 0, 8),
-    Size = UDim2.fromOffset(20, 20),
+    Size = UDim2.fromOffset(24, 24),
     Image = "rbxassetid://7743862963", -- Icono de lupa
-    ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
+    ImageColor3 = Color3.fromRGB(255, 255, 255),
+    ZIndex = 1002,
     Parent = window.TitleBar
+})
+
+-- Añadir bordes redondeados para el botón
+Utility:Create("UICorner", {
+    CornerRadius = UDim.new(0, 4),
+    Parent = window.SearchButton
+})
+
+       -- Botón de búsqueda alternativo para pruebas
+window.TestSearchButton = Utility:Create("TextButton", {
+    Name = "TestSearchButton",
+    Text = "🔍 Buscar",
+    BackgroundColor3 = self.Theme.Accent,
+    BackgroundTransparency = 0.2,
+    Position = UDim2.new(0, 10, 0, 10),
+    Size = UDim2.new(0, 100, 0, 25),
+    Font = self.Theme.Font,
+    TextColor3 = Color3.fromRGB(255, 255, 255),
+    ZIndex = 9999,
+    Parent = window.Frame
+})
+
+-- Conectar el botón de prueba
+window.TestSearchButton.MouseButton1Click:Connect(function()
+    print("Botón de prueba presionado")
+    window:ToggleSearch()
+end)
+
+-- Añadir bordes redondeados
+Utility:Create("UICorner", {
+    CornerRadius = UDim.new(0, 4),
+    Parent = window.TestSearchButton
 })
     
     -- Botón flotante para cuando está minimizado
@@ -1112,18 +1146,18 @@ window.FloatingButton = Utility:Create("ImageButton", {
     Utility:Draggable(window.FloatingButton, window.FloatingButton)
 
     -- Panel de búsqueda
-window.SearchPanel = Utility:Create("Frame", {
-    Name = "SearchPanel",
-    BackgroundColor3 = self.Theme.Primary,
-    BackgroundTransparency = self.Theme.Transparency,
-    BorderSizePixel = 0,
-    Position = UDim2.new(0.5, 0, 0.2, -50), -- Cambiado de (0.5, 0, 0, -50)
-    AnchorPoint = Vector2.new(0.5, 0),
-    Size = UDim2.new(0, isMobile and 300 or 400, 0, 40),
-    Visible = false,
-    ZIndex = 1000,
-    Parent = self.Container
-})
+    window.SearchPanel = Utility:Create("Frame", {
+        Name = "SearchPanel",
+        BackgroundColor3 = self.Theme.Primary,
+        BackgroundTransparency = self.Theme.Transparency,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0.5, 0, 0.5, -150),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.new(0, isMobile and 300 or 400, 0, 40),
+        Visible = false,
+        ZIndex = 9999,
+        Parent = self.Container
+    })
 
 -- Bordes redondeados
 Utility:Create("UICorner", {
@@ -1208,11 +1242,11 @@ window.SearchResults = Utility:Create("ScrollingFrame", {
     Position = UDim2.new(0, 0, 1, 5),
     Size = UDim2.new(1, 0, 0, 0), -- Tamaño inicial
     CanvasSize = UDim2.new(0, 0, 0, 0),
-    ScrollBarThickness = 4,
+    ScrollBarThickness = 6,
     ScrollBarImageColor3 = self.Theme.Accent,
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Visible = false,
-    ZIndex = 1000,
+    ZIndex = 10000, -- Incrementado para asegurar visibilidad
     Parent = window.SearchPanel
 })
 
@@ -1432,16 +1466,19 @@ end
         window:ToggleMinimize()
     end)
 
-    -- Conectar eventos de búsqueda
+    -- Conectar eventos de búsqueda con depuración
 window.SearchButton.MouseButton1Click:Connect(function()
+    print("Botón de búsqueda presionado")
     window:ToggleSearch()
 end)
 
 window.CloseSearchButton.MouseButton1Click:Connect(function()
+    print("Botón de cierre presionado")
     window:ToggleSearch(false)
 end)
 
 window.SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+    print("Texto de búsqueda cambiado:", window.SearchInput.Text)
     window:Search(window.SearchInput.Text)
 end)
 
@@ -1459,6 +1496,30 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.F and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
         window:ToggleSearch()
+    end
+end)
+
+          -- Iniciar la conexión de eventos una vez creados todos los componentes
+task.spawn(function()
+    wait(1) -- Pequeño retraso para asegurar que todos los componentes estén creados
+    print("Reconectando eventos de búsqueda...")
+    
+    if window.SearchButton then
+        window.SearchButton.MouseButton1Click:Connect(function()
+            print("Botón de búsqueda presionado (reconexión)")
+            window:ToggleSearch()
+        end)
+    else
+        print("Error: SearchButton no existe")
+    end
+    
+    if window.CloseSearchButton then
+        window.CloseSearchButton.MouseButton1Click:Connect(function()
+            print("Botón de cierre presionado (reconexión)")
+            window:ToggleSearch(false)
+        end)
+    else
+        print("Error: CloseSearchButton no existe")
     end
 end)
     
@@ -3615,20 +3676,21 @@ end)
 
     -- Función para mostrar/ocultar el panel de búsqueda
     function window:ToggleSearch(show)
+        print("ToggleSearch llamado", show) -- Ayuda a depurar
         if show == nil then
             show = not window.SearchPanel.Visible
         end
         
         if show then
-            window.SearchPanel.Position = UDim2.new(0.5, 0, 0.2, -50)
+            window.SearchPanel.Position = UDim2.new(0.5, 0, 0.5, -150)
             window.SearchPanel.Visible = true
             window.SearchResults.Visible = false
             window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
             window.SearchInput.Text = ""
             
-            -- Animar la entrada (posición ajustada)
+            -- Animar la entrada con posición centrada
             Utility:Tween(window.SearchPanel, {
-                Position = UDim2.new(0.5, 0, 0.2, 10) -- Cambiado de (0.5, 0, 0, 10)
+                Position = UDim2.new(0.5, 0, 0.5, 0)
             }, 0.3, Enum.EasingStyle.Back)
             
             -- Enfocar el campo de texto
@@ -3636,9 +3698,9 @@ end)
                 window.SearchInput:CaptureFocus()
             end)
         else
-            -- Animar la salida (posición ajustada)
+            -- Animar la salida desde el centro
             Utility:Tween(window.SearchPanel, {
-                Position = UDim2.new(0.5, 0, 0.2, -50) -- Cambiado de (0.5, 0, 0, -50)
+                Position = UDim2.new(0.5, 0, 0.5, -150)
             }, 0.3)
             
             -- Ocultar después de la animación
