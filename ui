@@ -3536,6 +3536,11 @@ window.SearchResults = Utility:Create("ScrollingFrame", {
     
     -- Seleccionar tab
     function window:SelectTab(tab)
+        -- Asegurar que la pestaña sea válida antes de intentar seleccionarla
+if not tab or not tab.Container then
+    warn("Intento de seleccionar una pestaña inválida o nula")
+    return
+end
         if window.CurrentTab == tab then return end
         
         -- Ocultar tab actual si existe
@@ -3727,6 +3732,13 @@ function window:Search(query)
         window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
         return
     end
+
+    -- Verificar que la búsqueda sea válida
+if not query then
+    window.SearchResults.Visible = false
+    window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
+    return
+end
     
     -- Indexar elementos si aún no se ha hecho
     if not window.IndexedElements then
@@ -3912,28 +3924,41 @@ resultButton.MouseButton1Click:Connect(function()
             -- Obtener el contenedor de desplazamiento
             local parentScrollFrame = result.ParentTab.Container
             
-            -- Enfoque directo para navegar al elemento
-            if parentScrollFrame:IsA("ScrollingFrame") then
-                -- Obtener la posición absoluta del elemento y del marco de desplazamiento
-                local elementAbsPos = instance.AbsolutePosition
-                local scrollFrameAbsPos = parentScrollFrame.AbsolutePosition
-                
-                -- Calcular la posición relativa dentro del marco de desplazamiento
-                local relativePos = elementAbsPos.Y - scrollFrameAbsPos.Y
-                
-                -- Ajustar la posición del canvas considerando la posición actual
-                local targetCanvasPos = parentScrollFrame.CanvasPosition.Y + relativePos - 50
-                
-                -- Prevenir desplazamientos negativos
-                targetCanvasPos = math.max(0, targetCanvasPos)
-                
-                -- Imprimir información de depuración
-                print("Navegando a elemento:", result.Name)
-                print("Posición actual:", parentScrollFrame.CanvasPosition.Y)
-                print("Posición objetivo:", targetCanvasPos)
-                
-                -- Establecer directamente la posición
-                parentScrollFrame.CanvasPosition = Vector2.new(0, targetCanvasPos)
+            -- Enfoque más seguro para navegar al elemento
+if parentScrollFrame:IsA("ScrollingFrame") then
+    -- Método de posicionamiento simple y confiable
+    local targetCanvasPos = 0
+    
+    -- Intento #1: Usar posición relativa basada en LayoutOrder si es posible
+    if instance:FindFirstChild("LayoutOrder") then
+        targetCanvasPos = instance.LayoutOrder * 50 -- Aproximación basada en tamaño promedio
+    -- Intento #2: Usar índice en la lista de hijos
+    else
+        local children = parentScrollFrame:GetChildren()
+        for i, child in ipairs(children) do
+            if child == instance or (instance.Parent and child == instance.Parent) then
+                targetCanvasPos = (i - 1) * 50 -- Aproximación de 50 píxeles por elemento
+                break
+            end
+        end
+    end
+    
+    -- Intento #3: Método de desplazamiento seguro usando Position
+    if targetCanvasPos == 0 and instance.Position then
+        pcall(function()
+            targetCanvasPos = instance.Position.Y.Offset
+        end)
+    end
+    
+    -- Imprimir información de depuración
+    print("Navegando a elemento:", result.Name)
+    print("Posición calculada para navegar:", targetCanvasPos)
+    
+    -- Asegurar que el valor sea válido
+    targetCanvasPos = math.max(0, targetCanvasPos)
+    
+    -- Aplicar la posición con un pequeño desplazamiento hacia arriba para mejor visibilidad
+    parentScrollFrame.CanvasPosition = Vector2.new(0, targetCanvasPos - 20)
                 
                 -- Aplicar efectos visuales después de establecer la posición
                 task.wait(0.1)
