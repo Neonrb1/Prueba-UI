@@ -1091,18 +1091,17 @@ function NeonUI:CreateWindow(options)
     })
 
     -- Creamos un botón integrado en la interfaz
-    window.SearchButton = Utility:Create("TextButton", {
-        Name = "SearchButton",
-        Text = "🔍 Buscar",
-        BackgroundColor3 = self.Theme.Accent,
-        BackgroundTransparency = 0.2,
-        Position = UDim2.new(0, 10, 0, 48), -- Lo colocamos debajo de la barra de título
-        Size = UDim2.new(0, 100, 0, 25),
-        Font = self.Theme.Font,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        ZIndex = 5,
-        Parent = window.Frame
-    })
+window.SearchButton = Utility:Create("TextButton", {
+    Name = "SearchButton",
+    Text = "🔍",
+    BackgroundTransparency = 1,
+    Position = UDim2.new(1, -76, 0, 8), -- A la izquierda del botón de minimizar
+    Size = UDim2.fromOffset(20, 20),
+    Font = self.Theme.Font,
+    TextColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
+    ZIndex = 5,
+    Parent = window.TitleBar -- Cambiado a la barra de título
+})
 
     -- Añadimos efecto de brillo para mantener el tema lava
     if window.Theme == "Lava" then
