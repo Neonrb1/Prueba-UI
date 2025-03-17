@@ -1072,6 +1072,17 @@ function NeonUI:CreateWindow(options)
         ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
         Parent = window.TitleBar
     })
+
+    -- Botón de búsqueda
+window.SearchButton = Utility:Create("ImageButton", {
+    Name = "SearchButton",
+    BackgroundTransparency = 1,
+    Position = UDim2.new(1, -76, 0, 8),
+    Size = UDim2.fromOffset(20, 20),
+    Image = "rbxassetid://7743862963", -- Icono de lupa
+    ImageColor3 = window.Theme == "Lava" and self.Theme.Accent or Color3.fromRGB(220, 220, 220),
+    Parent = window.TitleBar
+})
     
     -- Botón flotante para cuando está minimizado
 window.FloatingButton = Utility:Create("ImageButton", {
@@ -1099,6 +1110,154 @@ window.FloatingButton = Utility:Create("ImageButton", {
     
     -- Hacer arrastrable el botón flotante
     Utility:Draggable(window.FloatingButton, window.FloatingButton)
+
+    -- Panel de búsqueda
+window.SearchPanel = Utility:Create("Frame", {
+    Name = "SearchPanel",
+    BackgroundColor3 = self.Theme.Primary,
+    BackgroundTransparency = self.Theme.Transparency,
+    BorderSizePixel = 0,
+    Position = UDim2.new(0.5, 0, 0, -50), -- Posición inicial fuera de la pantalla
+    AnchorPoint = Vector2.new(0.5, 0),
+    Size = UDim2.new(0, isMobile and 300 or 400, 0, 40),
+    Visible = false,
+    ZIndex = 1000,
+    Parent = self.Container
+})
+
+-- Bordes redondeados
+Utility:Create("UICorner", {
+    CornerRadius = UDim.new(0, 20),
+    Parent = window.SearchPanel
+})
+
+-- Si es tema lava, añadir efectos
+if window.Theme == "Lava" then
+    -- Gradiente
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+            ColorSequenceKeypoint.new(1, self.Theme.Primary)
+        }),
+        Rotation = 90,
+        Parent = window.SearchPanel
+    })
+    
+    -- Borde brillante
+    Utility:Create("UIStroke", {
+        Color = self.Theme.Accent,
+        Thickness = 1.5,
+        Transparency = 0.7,
+        Parent = window.SearchPanel
+    })
+    
+    -- Añadir brillo
+    Utility:CreateGlow(window.SearchPanel, self.Theme.Glow, 1.2)
+end
+
+-- Campo de búsqueda
+window.SearchInput = Utility:Create("TextBox", {
+    Name = "SearchInput",
+    BackgroundTransparency = 1,
+    Position = UDim2.new(0, 40, 0, 0),
+    Size = UDim2.new(1, -80, 1, 0),
+    Font = self.Theme.Font,
+    PlaceholderText = "Buscar...",
+    Text = "",
+    TextColor3 = self.Theme.Text,
+    PlaceholderColor3 = Color3.fromRGB(180, 180, 180),
+    TextSize = self.Theme.FontSize,
+    ClearTextOnFocus = false,
+    ZIndex = 1001,
+    Parent = window.SearchPanel
+})
+
+-- Icono de búsqueda
+window.SearchIcon = Utility:Create("ImageLabel", {
+    Name = "SearchIcon",
+    BackgroundTransparency = 1,
+    Position = UDim2.new(0, 10, 0.5, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    Size = UDim2.fromOffset(20, 20),
+    Image = "rbxassetid://7743862963", -- Icono de lupa
+    ImageColor3 = self.Theme.Accent,
+    ZIndex = 1001,
+    Parent = window.SearchPanel
+})
+
+-- Botón para cerrar la búsqueda
+window.CloseSearchButton = Utility:Create("ImageButton", {
+    Name = "CloseSearchButton",
+    BackgroundTransparency = 1,
+    Position = UDim2.new(1, -30, 0.5, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    Size = UDim2.fromOffset(20, 20),
+    Image = "rbxassetid://7733717447", -- Icono X
+    ImageColor3 = self.Theme.Accent,
+    ZIndex = 1001,
+    Parent = window.SearchPanel
+})
+
+-- Panel de resultados
+window.SearchResults = Utility:Create("ScrollingFrame", {
+    Name = "SearchResults",
+    BackgroundColor3 = self.Theme.Primary,
+    BackgroundTransparency = self.Theme.Transparency,
+    BorderSizePixel = 0,
+    Position = UDim2.new(0, 0, 1, 5),
+    Size = UDim2.new(1, 0, 0, 0), -- Tamaño inicial
+    CanvasSize = UDim2.new(0, 0, 0, 0),
+    ScrollBarThickness = 4,
+    ScrollBarImageColor3 = self.Theme.Accent,
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    Visible = false,
+    ZIndex = 1000,
+    Parent = window.SearchPanel
+})
+
+-- Bordes redondeados para resultados
+Utility:Create("UICorner", {
+    CornerRadius = UDim.new(0, 10),
+    Parent = window.SearchResults
+})
+
+-- Si es tema lava, añadir efectos
+if window.Theme == "Lava" then
+    Utility:Create("UIStroke", {
+        Color = self.Theme.Accent,
+        Thickness = 1,
+        Transparency = 0.8,
+        Parent = window.SearchResults
+    })
+    
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.3)),
+            ColorSequenceKeypoint.new(1, self.Theme.Primary)
+        }),
+        Rotation = 90,
+        Parent = window.SearchResults
+    })
+end
+
+-- Layout para resultados
+Utility:Create("UIListLayout", {
+    Padding = UDim.new(0, 4),
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Parent = window.SearchResults
+})
+
+-- Padding para resultados
+Utility:Create("UIPadding", {
+    PaddingLeft = UDim.new(0, 5),
+    PaddingRight = UDim.new(0, 5),
+    PaddingTop = UDim.new(0, 5),
+    PaddingBottom = UDim.new(0, 5),
+    Parent = window.SearchResults
+})
     
     -- Funcionalidad de arrastrar ventana
     Utility:Draggable(window.Frame, window.TitleBar)
@@ -1272,6 +1431,36 @@ end
     window.FloatingButton.MouseButton1Click:Connect(function()
         window:ToggleMinimize()
     end)
+
+    -- Conectar eventos de búsqueda
+window.SearchButton.MouseButton1Click:Connect(function()
+    window:ToggleSearch()
+end)
+
+window.CloseSearchButton.MouseButton1Click:Connect(function()
+    window:ToggleSearch(false)
+end)
+
+window.SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+    window:Search(window.SearchInput.Text)
+end)
+
+window.SearchInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed and #window.SearchResults:GetChildren() > 2 then -- Layout + Padding + al menos 1 resultado
+        -- Seleccionar el primer resultado si se presiona Enter
+        local firstResult = window.SearchResults:FindFirstChildWhichIsA("TextButton")
+        if firstResult then
+            firstResult.MouseButton1Click:Fire()
+        end
+    end
+end)
+
+-- Atajo de teclado Ctrl+F para búsqueda
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        window:ToggleSearch()
+    end
+end)
     
     -- Métodos de ventana
     function window:AddTab(options)
@@ -1400,6 +1589,9 @@ end
         if #window.Tabs == 1 then
             window:SelectTab(tab)
         end
+
+        -- Actualizar índice de búsqueda cuando se añade una pestaña
+        window:RefreshSearchIndex()
         
         -- Métodos del tab
         function tab:AddSection(options)
@@ -1536,6 +1728,9 @@ end
             
             -- Añadir sección a la lista
             table.insert(tab.Sections, section)
+
+            -- Actualizar índice de búsqueda cuando se añade una sección
+            window:RefreshSearchIndex()
             
             -- Botón
             function section:AddButton(options)
@@ -1737,6 +1932,9 @@ end
                 
                 -- Añadir a la lista de elementos
                 table.insert(section.Elements, button)
+
+                -- Actualizar índice de búsqueda cuando se añade un elemento
+                window:RefreshSearchIndex()
                 
                 return button
             end
@@ -3264,6 +3462,40 @@ end
                         end
                     end
                 end)
+
+                -- Cerrar búsqueda al hacer clic fuera
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if window.SearchPanel.Visible then
+            local isInPanel = false
+            
+            -- Verificar si el clic está dentro del panel de búsqueda o resultados
+            if window.SearchPanel.Visible and 
+               input.Position.X >= window.SearchPanel.AbsolutePosition.X and 
+               input.Position.X <= window.SearchPanel.AbsolutePosition.X + window.SearchPanel.AbsoluteSize.X and 
+               input.Position.Y >= window.SearchPanel.AbsolutePosition.Y and 
+               input.Position.Y <= window.SearchPanel.AbsolutePosition.Y + window.SearchPanel.AbsoluteSize.Y then
+                isInPanel = true
+            end
+            
+            if window.SearchResults.Visible and 
+               input.Position.X >= window.SearchResults.AbsolutePosition.X and 
+               input.Position.X <= window.SearchResults.AbsolutePosition.X + window.SearchResults.AbsoluteSize.X and 
+               input.Position.Y >= window.SearchResults.AbsolutePosition.Y and 
+               input.Position.Y <= window.SearchResults.AbsolutePosition.Y + window.SearchResults.AbsoluteSize.Y then
+                isInPanel = true
+            end
+            
+            if not isInPanel and
+               not (input.Position.X >= window.SearchButton.AbsolutePosition.X and
+                   input.Position.X <= window.SearchButton.AbsolutePosition.X + window.SearchButton.AbsoluteSize.X and
+                   input.Position.Y >= window.SearchButton.AbsolutePosition.Y and
+                   input.Position.Y <= window.SearchButton.AbsolutePosition.Y + window.SearchButton.AbsoluteSize.Y) then
+                window:ToggleSearch(false)
+            end
+        end
+    end
+end)
                 
                 -- Inicializar opciones
                 dropdown:Refresh()
@@ -3380,6 +3612,273 @@ end
         
         return true
     end
+
+    -- Función para mostrar/ocultar el panel de búsqueda
+function window:ToggleSearch(show)
+    if show == nil then
+        show = not window.SearchPanel.Visible
+    end
+    
+    if show then
+        window.SearchPanel.Position = UDim2.new(0.5, 0, 0, -50)
+        window.SearchPanel.Visible = true
+        window.SearchResults.Visible = false
+        window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
+        window.SearchInput.Text = ""
+        
+        -- Animar la entrada
+        Utility:Tween(window.SearchPanel, {
+            Position = UDim2.new(0.5, 0, 0, 10)
+        }, 0.3, Enum.EasingStyle.Back)
+        
+        -- Enfocar el campo de texto
+        task.delay(0.3, function()
+            window.SearchInput:CaptureFocus()
+        end)
+    else
+        -- Animar la salida
+        Utility:Tween(window.SearchPanel, {
+            Position = UDim2.new(0.5, 0, 0, -50)
+        }, 0.3)
+        
+        -- Ocultar después de la animación
+        task.delay(0.3, function()
+            window.SearchPanel.Visible = false
+            window.SearchResults.Visible = false
+        end)
+    end
+end
+
+-- Función para indexar todos los elementos de la interfaz
+function window:IndexElements()
+    local elements = {}
+    
+    -- Recorrer todas las pestañas
+    for _, tab in pairs(window.Tabs) do
+        table.insert(elements, {
+            Type = "Tab",
+            Name = tab.Title,
+            Icon = tab.Icon,
+            Instance = tab,
+            Path = tab.Title
+        })
+        
+        -- Recorrer secciones de la pestaña
+        for _, section in pairs(tab.Sections) do
+            table.insert(elements, {
+                Type = "Section",
+                Name = section.Title,
+                Instance = section,
+                ParentTab = tab,
+                Path = tab.Title .. " > " .. section.Title
+            })
+            
+            -- Recorrer elementos de la sección
+            for _, element in pairs(section.Elements) do
+                if element.Title then
+                    local description = ""
+                    if element.Description then
+                        description = element.Description
+                    end
+                    
+                    table.insert(elements, {
+                        Type = "Element",
+                        Name = element.Title,
+                        Description = description,
+                        Instance = element,
+                        ParentSection = section,
+                        ParentTab = tab,
+                        Path = tab.Title .. " > " .. section.Title .. " > " .. element.Title
+                    })
+                end
+            end
+        end
+    end
+    
+    return elements
+end
+
+-- Función para buscar elementos
+function window:Search(query)
+    if not query or query == "" then
+        window.SearchResults.Visible = false
+        window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
+        return
+    end
+    
+    -- Indexar elementos si aún no se ha hecho
+    if not window.IndexedElements then
+        window.IndexedElements = window:IndexElements()
+    end
+    
+    -- Limpiar resultados anteriores
+    for _, child in pairs(window.SearchResults:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    
+    -- Buscar coincidencias
+    local results = {}
+    query = string.lower(query)
+    
+    for _, element in ipairs(window.IndexedElements) do
+        local name = string.lower(element.Name)
+        local description = element.Description and string.lower(element.Description) or ""
+        local path = string.lower(element.Path)
+        
+        if string.find(name, query) or string.find(description, query) or string.find(path, query) then
+            table.insert(results, element)
+        end
+    end
+    
+    -- Mostrar resultados si hay alguno
+    if #results > 0 then
+        window.SearchResults.Visible = true
+        
+        -- Crear elementos de resultados
+        for i, result in ipairs(results) do
+            local resultButton = Utility:Create("TextButton", {
+                Name = "Result_" .. i,
+                BackgroundColor3 = self.Theme.Secondary,
+                BackgroundTransparency = self.Theme.Transparency,
+                BorderSizePixel = 0,
+                Size = UDim2.new(1, 0, 0, 40),
+                Font = self.Theme.Font,
+                Text = "",
+                TextColor3 = self.Theme.Text,
+                TextSize = self.Theme.FontSize,
+                AutoButtonColor = false,
+                ZIndex = 1001,
+                Parent = window.SearchResults
+            })
+            
+            -- Bordes redondeados
+            Utility:Create("UICorner", {
+                CornerRadius = UDim.new(0, 6),
+                Parent = resultButton
+            })
+            
+            -- Título del resultado
+            local resultTitle = Utility:Create("TextLabel", {
+                Name = "Title",
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 10, 0, 5),
+                Size = UDim2.new(1, -20, 0, 16),
+                Font = self.Theme.Font,
+                Text = result.Name,
+                TextColor3 = self.Theme.Accent,
+                TextSize = self.Theme.FontSize,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 1002,
+                Parent = resultButton
+            })
+            
+            -- Ruta del resultado
+            local resultPath = Utility:Create("TextLabel", {
+                Name = "Path",
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 10, 0, 22),
+                Size = UDim2.new(1, -20, 0, 14),
+                Font = self.Theme.Font,
+                Text = result.Path,
+                TextColor3 = Color3.fromRGB(180, 180, 180),
+                TextSize = self.Theme.FontSize - 2,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 1002,
+                Parent = resultButton
+            })
+            
+            -- Icono de tipo
+            local iconId = "7734093360" -- Icono por defecto (buscar)
+            if result.Type == "Tab" then
+                iconId = result.Icon and NeonUI:GetIcon(result.Icon) or "7733960981" -- Home
+            elseif result.Type == "Section" then
+                iconId = "7734155436" -- Box
+            elseif result.Type == "Element" then
+                iconId = "7743943252" -- Puzzle
+            end
+            
+            local resultIcon = Utility:Create("ImageLabel", {
+                Name = "Icon",
+                BackgroundTransparency = 1,
+                Position = UDim2.new(1, -30, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                Size = UDim2.fromOffset(20, 20),
+                Image = "rbxassetid://" .. iconId,
+                ImageColor3 = self.Theme.Accent,
+                ZIndex = 1002,
+                Parent = resultButton
+            })
+            
+            -- Evento de clic
+            resultButton.MouseButton1Click:Connect(function()
+                -- Navegar al elemento
+                if result.Type == "Tab" then
+                    window:SelectTab(result.Instance)
+                elseif result.Type == "Section" or result.Type == "Element" then
+                    -- Seleccionar pestaña padre
+                    window:SelectTab(result.ParentTab)
+                    
+                    -- Resaltar el elemento
+                    local instance = result.Type == "Section" and result.Instance.Container or result.Instance.Container
+                    local originalColor = instance.BackgroundColor3
+                    
+                    -- Crear efecto de resaltado
+                    if instance then
+                        -- Resaltar
+                        Utility:Tween(instance, {
+                            BackgroundColor3 = self.Theme.Accent
+                        }, 0.3)
+                        
+                        -- Restaurar después de un momento
+                        task.delay(1.5, function()
+                            Utility:Tween(instance, {
+                                BackgroundColor3 = originalColor
+                            }, 0.3)
+                        end)
+                        
+                        -- Desplazarse al elemento
+                        if result.ParentTab.Container:IsA("ScrollingFrame") then
+                            local containerPos = instance.Position.Y.Offset
+                            result.ParentTab.Container.CanvasPosition = Vector2.new(0, containerPos - 50)
+                        end
+                    end
+                end
+                
+                -- Cerrar la búsqueda
+                window:ToggleSearch(false)
+            end)
+            
+            -- Efectos de hover
+            resultButton.MouseEnter:Connect(function()
+                Utility:Tween(resultButton, {
+                    BackgroundColor3 = self.Theme.Secondary:Lerp(self.Theme.Accent, 0.1)
+                }, 0.2)
+            end)
+            
+            resultButton.MouseLeave:Connect(function()
+                Utility:Tween(resultButton, {
+                    BackgroundColor3 = self.Theme.Secondary
+                }, 0.2)
+            end)
+        end
+        
+        -- Ajustar tamaño del panel de resultados
+        local maxHeight = math.min(#results * 44, 220) -- Máximo 5 resultados visibles a la vez
+        Utility:Tween(window.SearchResults, {
+            Size = UDim2.new(1, 0, 0, maxHeight)
+        }, 0.3)
+    else
+        window.SearchResults.Visible = false
+        window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
+    end
+end
+
+-- Función para forzar la reindexación de elementos
+function window:RefreshSearchIndex()
+    window.IndexedElements = nil
+end
     
     table.insert(self.Windows, window)
     return window
