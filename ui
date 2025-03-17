@@ -1073,17 +1073,17 @@ function NeonUI:CreateWindow(options)
         Parent = window.TitleBar
     })
 
-    -- Botón de búsqueda
-window.SearchButton = Utility:Create("ImageButton", {
-    Name = "SearchButton",
-    BackgroundTransparency = 0.5,
-    BackgroundColor3 = self.Theme.Accent,
-    Position = UDim2.new(1, -76, 0, 8),
-    Size = UDim2.fromOffset(24, 24),
-    Image = "rbxassetid://7743862963", -- Icono de lupa
-    ImageColor3 = Color3.fromRGB(255, 255, 255),
-    ZIndex = 1002,
-    Parent = window.TitleBar
+    -- Desactivamos el botón original por ahora (lo convertimos en decorativo)
+window.SearchButtonOld = Utility:Create("ImageLabel", { -- Cambiado a ImageLabel (no es interactivo)
+Name = "SearchButtonOld",
+BackgroundTransparency = 1, -- Totalmente transparente
+Position = UDim2.new(1, -76, 0, 8),
+Size = UDim2.fromOffset(24, 24),
+Image = "rbxassetid://7743862963",
+ImageColor3 = Color3.fromRGB(100, 100, 100), -- Gris para indicar que está desactivado
+ImageTransparency = 0.7, -- Semi-transparente
+ZIndex = 1002,
+Parent = window.TitleBar
 })
 
 -- Añadir bordes redondeados para el botón
@@ -1092,31 +1092,42 @@ Utility:Create("UICorner", {
     Parent = window.SearchButton
 })
 
-       -- Botón de búsqueda alternativo para pruebas
-window.TestSearchButton = Utility:Create("TextButton", {
-    Name = "TestSearchButton",
+       -- Creamos un botón integrado en la interfaz
+window.SearchButton = Utility:Create("TextButton", {
+    Name = "SearchButton",
     Text = "🔍 Buscar",
     BackgroundColor3 = self.Theme.Accent,
     BackgroundTransparency = 0.2,
-    Position = UDim2.new(0, 10, 0, 10),
+    Position = UDim2.new(0, 10, 0, 48), -- Lo colocamos debajo de la barra de título
     Size = UDim2.new(0, 100, 0, 25),
     Font = self.Theme.Font,
     TextColor3 = Color3.fromRGB(255, 255, 255),
-    ZIndex = 9999,
+    ZIndex = 1002,
     Parent = window.Frame
 })
 
--- Conectar el botón de prueba
-window.TestSearchButton.MouseButton1Click:Connect(function()
-    print("Botón de prueba presionado")
+-- Añadimos efecto de brillo para mantener el tema lava
+if window.Theme == "Lava" then
+    Utility:CreateGlow(window.SearchButton, self.Theme.Glow, 1.2)
+end
+
+-- Conectar el botón de búsqueda principal
+window.SearchButton.MouseButton1Click:Connect(function()
     window:ToggleSearch()
 end)
 
 -- Añadir bordes redondeados
 Utility:Create("UICorner", {
     CornerRadius = UDim.new(0, 4),
-    Parent = window.TestSearchButton
+    Parent = window.SearchButton
 })
+
+-- Desconectamos todos los eventos del botón viejo (si existen)
+if window.SearchButtonOld and typeof(window.SearchButtonOld) == "Instance" then
+    for _, conn in pairs(getconnections(window.SearchButtonOld.MouseButton1Click)) do
+        conn:Disable()
+    end
+end
     
     -- Botón flotante para cuando está minimizado
 window.FloatingButton = Utility:Create("ImageButton", {
@@ -1246,9 +1257,12 @@ window.SearchResults = Utility:Create("ScrollingFrame", {
     ScrollBarImageColor3 = self.Theme.Accent,
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     Visible = false,
-    ZIndex = 10000, -- Incrementado para asegurar visibilidad
+    ZIndex = 10000,
     Parent = window.SearchPanel
 })
+
+-- Aseguramos que los resultados de búsqueda se muestren en el lugar correcto
+window.SearchResults.Parent = window.SearchPanel
 
 -- Bordes redondeados para resultados
 Utility:Create("UICorner", {
@@ -3676,21 +3690,22 @@ end)
 
     -- Función para mostrar/ocultar el panel de búsqueda
     function window:ToggleSearch(show)
-        print("ToggleSearch llamado", show) -- Ayuda a depurar
         if show == nil then
             show = not window.SearchPanel.Visible
         end
         
         if show then
-            window.SearchPanel.Position = UDim2.new(0.5, 0, 0.5, -150)
+            -- Posicionar justo debajo de la barra de título
+            window.SearchPanel.Position = UDim2.new(0.5, 0, 0, 36)
+            window.SearchPanel.AnchorPoint = Vector2.new(0.5, 0)
             window.SearchPanel.Visible = true
             window.SearchResults.Visible = false
             window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
             window.SearchInput.Text = ""
             
-            -- Animar la entrada con posición centrada
+            -- Animar la entrada con un leve movimiento hacia abajo
             Utility:Tween(window.SearchPanel, {
-                Position = UDim2.new(0.5, 0, 0.5, 0)
+                Position = UDim2.new(0.5, 0, 0, 40)
             }, 0.3, Enum.EasingStyle.Back)
             
             -- Enfocar el campo de texto
@@ -3698,9 +3713,9 @@ end)
                 window.SearchInput:CaptureFocus()
             end)
         else
-            -- Animar la salida desde el centro
+            -- Animar la salida hacia arriba
             Utility:Tween(window.SearchPanel, {
-                Position = UDim2.new(0.5, 0, 0.5, -150)
+                Position = UDim2.new(0.5, 0, 0, 36)
             }, 0.3)
             
             -- Ocultar después de la animación
