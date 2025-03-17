@@ -1117,7 +1117,7 @@ window.SearchPanel = Utility:Create("Frame", {
     BackgroundColor3 = self.Theme.Primary,
     BackgroundTransparency = self.Theme.Transparency,
     BorderSizePixel = 0,
-    Position = UDim2.new(0.5, 0, 0, -50), -- Posición inicial fuera de la pantalla
+    Position = UDim2.new(0.5, 0, 0.2, -50), -- Cambiado de (0.5, 0, 0, -50)
     AnchorPoint = Vector2.new(0.5, 0),
     Size = UDim2.new(0, isMobile and 300 or 400, 0, 40),
     Visible = false,
@@ -3614,40 +3614,40 @@ end)
     end
 
     -- Función para mostrar/ocultar el panel de búsqueda
-function window:ToggleSearch(show)
-    if show == nil then
-        show = not window.SearchPanel.Visible
-    end
-    
-    if show then
-        window.SearchPanel.Position = UDim2.new(0.5, 0, 0, -50)
-        window.SearchPanel.Visible = true
-        window.SearchResults.Visible = false
-        window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
-        window.SearchInput.Text = ""
+    function window:ToggleSearch(show)
+        if show == nil then
+            show = not window.SearchPanel.Visible
+        end
         
-        -- Animar la entrada
-        Utility:Tween(window.SearchPanel, {
-            Position = UDim2.new(0.5, 0, 0, 10)
-        }, 0.3, Enum.EasingStyle.Back)
-        
-        -- Enfocar el campo de texto
-        task.delay(0.3, function()
-            window.SearchInput:CaptureFocus()
-        end)
-    else
-        -- Animar la salida
-        Utility:Tween(window.SearchPanel, {
-            Position = UDim2.new(0.5, 0, 0, -50)
-        }, 0.3)
-        
-        -- Ocultar después de la animación
-        task.delay(0.3, function()
-            window.SearchPanel.Visible = false
+        if show then
+            window.SearchPanel.Position = UDim2.new(0.5, 0, 0.2, -50)
+            window.SearchPanel.Visible = true
             window.SearchResults.Visible = false
-        end)
+            window.SearchResults.Size = UDim2.new(1, 0, 0, 0)
+            window.SearchInput.Text = ""
+            
+            -- Animar la entrada (posición ajustada)
+            Utility:Tween(window.SearchPanel, {
+                Position = UDim2.new(0.5, 0, 0.2, 10) -- Cambiado de (0.5, 0, 0, 10)
+            }, 0.3, Enum.EasingStyle.Back)
+            
+            -- Enfocar el campo de texto
+            task.delay(0.3, function()
+                window.SearchInput:CaptureFocus()
+            end)
+        else
+            -- Animar la salida (posición ajustada)
+            Utility:Tween(window.SearchPanel, {
+                Position = UDim2.new(0.5, 0, 0.2, -50) -- Cambiado de (0.5, 0, 0, -50)
+            }, 0.3)
+            
+            -- Ocultar después de la animación
+            task.delay(0.3, function()
+                window.SearchPanel.Visible = false
+                window.SearchResults.Visible = false
+            end)
+        end
     end
-end
 
 -- Función para indexar todos los elementos de la interfaz
 function window:IndexElements()
