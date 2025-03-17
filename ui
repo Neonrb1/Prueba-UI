@@ -1074,19 +1074,19 @@ function NeonUI:CreateWindow(options)
     })
     
     -- Botón flotante para cuando está minimizado
-    window.FloatingButton = Utility:Create("ImageButton", {
-        Name = "FloatingButton",
-        BackgroundColor3 = self.Theme.Accent,
-        BackgroundTransparency = 0.1,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0.8, 0, 0.8, 0),
-        Size = UDim2.fromOffset(44, 44),
-        Image = "rbxassetid://9835862639", -- Icono de fuego
-        ImageColor3 = Color3.fromRGB(255, 255, 255),
-        Visible = false,
-        Parent = self.Container,
-        ZIndex = 1000
-    })
+window.FloatingButton = Utility:Create("ImageButton", {
+    Name = "FloatingButton",
+    BackgroundColor3 = self.Theme.Accent,
+    BackgroundTransparency = 0.1,
+    BorderSizePixel = 0,
+    Position = UDim2.new(isMobile and 0.85 or 0.8, 0, isMobile and 0.7 or 0.8, 0),
+    Size = UDim2.fromOffset(isMobile and 54 or 44, isMobile and 54 or 44),
+    Image = "rbxassetid://9835862639", -- Icono de fuego
+    ImageColor3 = Color3.fromRGB(255, 255, 255),
+    Visible = false,
+    Parent = self.Container,
+    ZIndex = 1000
+})
     
     -- Bordes redondeados para botón flotante
     Utility:Create("UICorner", {
@@ -1225,33 +1225,43 @@ function NeonUI:CreateWindow(options)
     end)
     
     -- Función mejorada para minimizar/maximizar
-    function window:ToggleMinimize()
-        window.Minimized = not window.Minimized
+function window:ToggleMinimize()
+    window.Minimized = not window.Minimized
+    
+    if window.Minimized then
+        -- Guardar tamaño original para restaurar después
+        window.OriginalSize = window.Frame.Size
+        window.OriginalPosition = window.Frame.Position
         
-        if window.Minimized then
-            -- Guardar tamaño original para restaurar después
-            window.OriginalSize = window.Frame.Size
-            
-            -- Minimizar
-            Utility:Tween(window.Frame, {Size = UDim2.new(1, 0, 0, 36)}, 0.25)
-            
-            -- Mostrar botón flotante después de un pequeño retraso
-            task.delay(0.3, function()
-                window.FloatingButton.Visible = true
-                window.FloatingButton.Size = UDim2.fromOffset(0, 0)
-                Utility:Tween(window.FloatingButton, {Size = UDim2.fromOffset(44, 44)}, 0.25)
-            end)
-        else
-            -- Maximizar
-            Utility:Tween(window.Frame, {Size = window.OriginalSize or window.Size}, 0.25)
-            
-            -- Ocultar botón flotante
-            Utility:Tween(window.FloatingButton, {Size = UDim2.fromOffset(0, 0)}, 0.25)
-            task.delay(0.3, function()
-                window.FloatingButton.Visible = false
-            end)
-        end
+        -- Minimizar con animación y luego ocultar completamente
+        Utility:Tween(window.Frame, {Size = UDim2.new(0, window.Frame.AbsoluteSize.X, 0, 5)}, 0.2)
+        
+        -- Después de la animación, ocultar completamente
+        task.delay(0.21, function()
+            window.Frame.Visible = false
+        end)
+        
+        -- Mostrar botón flotante después de un pequeño retraso
+        task.delay(0.3, function()
+            window.FloatingButton.Visible = true
+            window.FloatingButton.Size = UDim2.fromOffset(0, 0)
+            Utility:Tween(window.FloatingButton, {Size = UDim2.fromOffset(isMobile and 54 or 44, isMobile and 54 or 44)}, 0.25)
+        end)
+    else
+        -- Mostrar el frame antes de animar
+        window.Frame.Visible = true
+        window.Frame.Size = UDim2.new(0, window.Frame.AbsoluteSize.X, 0, 5)
+        
+        -- Animar para mostrar
+        Utility:Tween(window.Frame, {Size = window.OriginalSize or window.Size}, 0.25)
+        
+        -- Ocultar botón flotante
+        Utility:Tween(window.FloatingButton, {Size = UDim2.fromOffset(0, 0)}, 0.25)
+        task.delay(0.3, function()
+            window.FloatingButton.Visible = false
+        end)
     end
+end
     
     -- Evento de botón de minimizar
     window.MinimizeButton.MouseButton1Click:Connect(function()
