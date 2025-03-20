@@ -830,7 +830,7 @@ function NeonUI:GetIcon(name)
         sliders = "7734176202",
         target = "7734226711",
         shield = "7734231071",
-        sword = "7743915270",
+        sword = "10734975692",
         wifi = "7734114676",
         bluetooth = "7733768238",
         share = "7734181035",
