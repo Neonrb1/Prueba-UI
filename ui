@@ -764,7 +764,7 @@ function NeonUI:GetIcon(name)
         info = "7734010138",
         plus = "7734056604",
         minus = "7734062493",
-        combat = "10734975692",
+        swords = "10734975692",
         box = "7734155436",
         close = "10734951535",
         chevron = "7734238686",
