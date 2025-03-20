@@ -798,7 +798,7 @@ function NeonUI:GetIcon(name)
         archive = "7743824158",
         layers = "7733859130",
         compass = "7733857969",
-        map = "7733837011",
+        map = "10734886004",
         ["map-pin"] = "7733824551",
         award = "10709769406",
         upload = "7734172322",
