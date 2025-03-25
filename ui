@@ -530,7 +530,7 @@ function NeonUI:IconDialog(options)
         BorderSizePixel = 0,
         Position = UDim2.fromScale(0, 0),
         Size = UDim2.fromScale(1, 1),
-        ZIndex = 1000,
+        ZIndex = 9000,
         Parent = self.Container
     })
     
@@ -542,14 +542,10 @@ function NeonUI:IconDialog(options)
         BorderSizePixel = 0,
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        Size = UDim2.fromOffset(320, 180),
-        ZIndex = 1001,
+        Size = UDim2.fromOffset(320, 150), -- Altura reducida
+        ZIndex = 9001,
         Parent = overlay
     })
-
-    -- Asegurarse que el diálogo esté por encima de todo
-overlay.ZIndex = 9000
-dialogFrame.ZIndex = 9001
     
     -- Bordes redondeados
     Utility:Create("UICorner", {
@@ -557,31 +553,55 @@ dialogFrame.ZIndex = 9001
         Parent = dialogFrame
     })
     
-    -- Si es tema lava, añadir efectos (verificar por el color primario en lugar de window.Theme)
-if self.Theme.Primary == PRIMARY_COLOR then -- Tema Lava
-    -- Gradiente
-    Utility:Create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, self.Theme.Primary),
-            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
-            ColorSequenceKeypoint.new(1, self.Theme.Secondary)
-        }),
-        Rotation = 90,
+    -- Sombra sutil alrededor del diálogo
+    local dialogShadow = Utility:Create("ImageLabel", {
+        Name = "DialogShadow",
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://6014261993", -- Imagen de sombra radial
+        ImageColor3 = Color3.fromRGB(0, 0, 0),
+        ImageTransparency = 0.5,
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.new(1, 40, 1, 40), -- Ligeramente más grande que el marco
+        ZIndex = 9000,
         Parent = dialogFrame
     })
     
-    -- Borde interior brillante
-    Utility:Create("UIStroke", {
-        Color = self.Theme.Accent,
-        Thickness = 1.5,
-        Transparency = 0.7,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    -- Si es tema lava, añadir efectos
+    if self.Theme.Primary == PRIMARY_COLOR then -- Tema Lava
+        -- Gradiente
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Primary),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+                ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+            }),
+            Rotation = 90,
+            Parent = dialogFrame
+        })
+        
+        -- Borde interior brillante
+        Utility:Create("UIStroke", {
+            Color = self.Theme.Accent,
+            Thickness = 1.5,
+            Transparency = 0.7,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = dialogFrame
+        })
+        
+        -- Añadir partículas de lava
+        Utility:CreateLavaParticles(dialogFrame, 8)
+    end
+    
+    -- Contenedor principal para mejor organización
+    local contentContainer = Utility:Create("Frame", {
+        Name = "ContentContainer",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(0, 0),
+        Size = UDim2.new(1, 0, 1, -50), -- Dejar espacio para los botones abajo
+        ZIndex = 9002,
         Parent = dialogFrame
     })
-    
-    -- Añadir partículas de lava
-    Utility:CreateLavaParticles(dialogFrame, 8)
-end
     
     -- Icono
     local iconId = "7743868191" -- Default warning icon
@@ -600,35 +620,62 @@ end
     local iconImage = Utility:Create("ImageLabel", {
         Name = "Icon",
         BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0, 20),
-        AnchorPoint = Vector2.new(0.5, 0),
-        Size = UDim2.fromOffset(32, 32),
+        Position = UDim2.new(0, 25, 0.5, -30), -- Posicionado a la izquierda
+        Size = UDim2.fromOffset(36, 36),
         Image = "rbxassetid://" .. iconId,
         ImageColor3 = self.Theme.Accent,
-        ZIndex = 1002,
-        Parent = dialogFrame
+        ZIndex = 9003,
+        Parent = contentContainer
     })
+    
+    -- Si es tema lava, añadir brillo al icono
+    if self.Theme.Primary == PRIMARY_COLOR then
+        Utility:CreateGlow(iconImage, self.Theme.Glow, 1.2)
+    end
     
     -- Título
     local titleLabel = Utility:Create("TextLabel", {
         Name = "Title",
         BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0, 60),
-        AnchorPoint = Vector2.new(0.5, 0),
-        Size = UDim2.new(0.9, 0, 0, 24),
+        Position = UDim2.new(0, 70, 0, 18), -- Posicionado a la derecha del icono
+        Size = UDim2.new(0.75, 0, 0, 28),
         Font = self.Theme.Font,
         Text = dialog.Title,
         TextColor3 = self.Theme.Text,
         TextSize = self.Theme.FontSize + 2,
-        ZIndex = 1002,
-        Parent = dialogFrame
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 9003,
+        Parent = contentContainer
+    })
+    
+    -- Si es tema lava, añadir gradiente al título
+    if self.Theme.Primary == PRIMARY_COLOR then
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Text),
+                ColorSequenceKeypoint.new(1, self.Theme.Accent)
+            }),
+            Parent = titleLabel
+        })
+    end
+    
+    -- Línea separadora debajo del título
+    local separator = Utility:Create("Frame", {
+        Name = "Separator",
+        BackgroundColor3 = self.Theme.Accent,
+        BackgroundTransparency = 0.7,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, 70, 0, 48),
+        Size = UDim2.new(0, 40, 0, 2),
+        ZIndex = 9003,
+        Parent = contentContainer
     })
     
     -- Contenido
     local contentLabel = Utility:Create("TextLabel", {
         Name = "Content",
         BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0, 90),
+        Position = UDim2.new(0.5, 0, 0, 60),
         AnchorPoint = Vector2.new(0.5, 0),
         Size = UDim2.new(0.9, 0, 0, 40),
         Font = self.Theme.Font,
@@ -636,18 +683,18 @@ end
         TextColor3 = Color3.fromRGB(220, 220, 220),
         TextSize = self.Theme.FontSize,
         TextWrapped = true,
-        ZIndex = 1002,
-        Parent = dialogFrame
+        ZIndex = 9003,
+        Parent = contentContainer
     })
     
     -- Contenedor de botones
     local buttonContainer = Utility:Create("Frame", {
         Name = "ButtonContainer",
         BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 1, -50),
+        Position = UDim2.new(0.5, 0, 1, -40),
         AnchorPoint = Vector2.new(0.5, 0),
-        Size = UDim2.new(0.9, 0, 0, 40),
-        ZIndex = 1002,
+        Size = UDim2.new(0.9, 0, 0, 34),
+        ZIndex = 9003,
         Parent = dialogFrame
     })
     
@@ -671,7 +718,7 @@ end
             Text = buttonInfo.Title,
             TextColor3 = Color3.fromRGB(255, 255, 255),
             TextSize = self.Theme.FontSize,
-            ZIndex = 1003,
+            ZIndex = 9004,
             LayoutOrder = i,
             Parent = buttonContainer
         })
@@ -682,24 +729,24 @@ end
             Parent = button
         })
         
-        -- Si es tema lava, añadir efectos (verificar por el color primario)
-if self.Theme.Primary == PRIMARY_COLOR then -- Tema Lava
-    -- Brillo para el botón
-    Utility:CreateGlow(button, self.Theme.Glow, 1.2)
-    
-    -- Gradiente para el botón principal
-    if i == #dialog.Buttons then
-        Utility:Create("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Accent),
-                ColorSequenceKeypoint.new(0.5, self.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
-                ColorSequenceKeypoint.new(1, self.Theme.Accent)
-            }),
-            Rotation = 45,
-            Parent = button
-        })
-    end
-end
+        -- Si es tema lava, añadir efectos
+        if self.Theme.Primary == PRIMARY_COLOR then
+            -- Brillo para el botón
+            Utility:CreateGlow(button, self.Theme.Glow, 1.2)
+            
+            -- Gradiente para el botón principal
+            if i == #dialog.Buttons then
+                Utility:Create("UIGradient", {
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, self.Theme.Accent),
+                        ColorSequenceKeypoint.new(0.5, self.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                        ColorSequenceKeypoint.new(1, self.Theme.Accent)
+                    }),
+                    Rotation = 45,
+                    Parent = button
+                })
+            end
+        end
         
         -- Evento de clic
         button.MouseButton1Click:Connect(function()
@@ -732,11 +779,33 @@ end
         end)
     end
     
-    -- Animación de apertura
+    -- Animación de apertura con un efecto más suave
     dialogFrame.Size = UDim2.fromOffset(0, 0)
+    dialogFrame.BackgroundTransparency = 1
     overlay.BackgroundTransparency = 1
-    Utility:Tween(dialogFrame, {Size = UDim2.fromOffset(320, 180)}, 0.3, Enum.EasingStyle.Back)
-    Utility:Tween(overlay, {BackgroundTransparency = 0.5}, 0.3)
+    
+    -- Animar aparición
+    Utility:Tween(overlay, {BackgroundTransparency = 0.5}, 0.2)
+    Utility:Tween(dialogFrame, {
+        Size = UDim2.fromOffset(320, 150),
+        BackgroundTransparency = self.Theme.Transparency
+    }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    
+    -- Efecto de aparición para elementos internos
+    for _, child in pairs(contentContainer:GetChildren()) do
+        child.BackgroundTransparency = 1
+        if child:IsA("TextLabel") then
+            child.TextTransparency = 1
+            Utility:Tween(child, {TextTransparency = 0}, 0.3)
+        elseif child:IsA("ImageLabel") then
+            child.ImageTransparency = 1
+            Utility:Tween(child, {ImageTransparency = 0}, 0.3)
+        elseif child:IsA("Frame") and child.Name == "Separator" then
+            Utility:Tween(child, {BackgroundTransparency = 0.7}, 0.3)
+        else
+            Utility:Tween(child, {BackgroundTransparency = 0}, 0.3)
+        end
+    end
     
     return dialog
 end
