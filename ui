@@ -60,6 +60,40 @@ function Utility:Create(instance, properties, children)
     return object
 end
 
+-- Función para crear separadores que se adapten al tamaño del texto
+function Utility:CreateTextSeparator(text, parent, posY, color, transparency)
+    local textLabel
+    
+    -- Buscar el TextLabel que contiene el texto
+    if text:IsA("TextLabel") then
+        textLabel = text
+    else
+        -- Buscar entre los hijos el TextLabel que coincide con el texto
+        for _, child in pairs(parent:GetChildren()) do
+            if child:IsA("TextLabel") and child.Text == text then
+                textLabel = child
+                break
+            end
+        end
+    end
+    
+    -- Si no encontramos el TextLabel, salir
+    if not textLabel then return end
+    
+    -- Crear separador que se adapta al ancho del texto
+    local separator = self:Create("Frame", {
+        Name = "TextSeparator",
+        BackgroundColor3 = color or NeonUI.Theme.Accent,
+        BackgroundTransparency = transparency or 0,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0, textLabel.Position.X.Offset, 0, posY or (textLabel.Position.Y.Offset + textLabel.Size.Y.Offset + 2)),
+        Size = UDim2.new(0, textLabel.TextBounds.X, 0, 2),
+        Parent = parent
+    })
+    
+    return separator
+end
+
 -- Crear Tween
 function Utility:Tween(instance, properties, duration, ...)
     local tween = TweenService:Create(instance, TweenInfo.new(duration, ...), properties)
@@ -660,16 +694,19 @@ function NeonUI:IconDialog(options)
     end
     
     -- Línea separadora debajo del título
-    local separator = Utility:Create("Frame", {
-        Name = "Separator",
-        BackgroundColor3 = self.Theme.Accent,
-        BackgroundTransparency = 0.7,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 70, 0, 48),
-        Size = UDim2.new(0, 40, 0, 2),
-        ZIndex = 9003,
-        Parent = contentContainer
-    })
+    -- Obtener el tamaño del texto para el separador
+local textSize = titleLabel.TextBounds.X
+-- Separador que se adapta al ancho del texto
+local separator = Utility:Create("Frame", {
+    Name = "Separator",
+    BackgroundColor3 = self.Theme.Accent,
+    BackgroundTransparency = 0.7,
+    BorderSizePixel = 0,
+    Position = UDim2.new(0, 70, 0, 48),
+    Size = UDim2.new(0, textSize, 0, 2),
+    ZIndex = 9003,
+    Parent = contentContainer
+})
     
     -- Contenido
     local contentLabel = Utility:Create("TextLabel", {
@@ -1779,15 +1816,17 @@ end)
                 })
             end
             
-            -- Separador
-            section.Separator = Utility:Create("Frame", {
-                Name = "Separator",
-                BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
-                BorderSizePixel = 0,
-                Position = UDim2.new(0, 10, 0, 30),
-                Size = UDim2.new(0, 50, 0, 2),
-                Parent = section.Container
-            })
+            -- Obtener el tamaño del texto para el separador
+local textSize = section.TitleLabel.TextBounds.X
+-- Separador que se adapta al ancho del texto
+section.Separator = Utility:Create("Frame", {
+    Name = "Separator",
+    BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
+    BorderSizePixel = 0,
+    Position = UDim2.new(0, 10, 0, 30),
+    Size = UDim2.new(0, textSize, 0, 2),
+    Parent = section.Container
+})
             
             -- Si es tema lava, añadir gradiente al separador
             if window.Theme == "Lava" then
@@ -2941,15 +2980,17 @@ end)
                     })
                 end
                 
-                -- Separador
-                paragraph.Separator = Utility:Create("Frame", {
-                    Name = "Separator",
-                    BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
-                    BorderSizePixel = 0,
-                    Position = UDim2.new(0, 10, 0, 30),
-                    Size = UDim2.new(0, 50, 0, 2),
-                    Parent = paragraph.Container
-                })
+                -- Obtener el tamaño del texto para el separador
+local textSize = paragraph.TitleLabel.TextBounds.X
+-- Separador que se adapta al ancho del texto
+paragraph.Separator = Utility:Create("Frame", {
+    Name = "Separator",
+    BackgroundColor3 = window.Theme == "Lava" and NeonUI.Theme.Accent or Color3.fromRGB(60, 60, 60),
+    BorderSizePixel = 0,
+    Position = UDim2.new(0, 10, 0, 30),
+    Size = UDim2.new(0, textSize, 0, 2),
+    Parent = paragraph.Container
+})
                 
                 -- Si es tema lava, añadir gradiente al separador
                 if window.Theme == "Lava" then
