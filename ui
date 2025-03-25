@@ -546,6 +546,10 @@ function NeonUI:IconDialog(options)
         ZIndex = 1001,
         Parent = overlay
     })
+
+    -- Asegurarse que el diálogo esté por encima de todo
+overlay.ZIndex = 9000
+dialogFrame.ZIndex = 9001
     
     -- Bordes redondeados
     Utility:Create("UICorner", {
@@ -553,31 +557,31 @@ function NeonUI:IconDialog(options)
         Parent = dialogFrame
     })
     
-    -- Si es tema lava, añadir efectos
-    if window.Theme and window.Theme == "Lava" then
-        -- Gradiente
-        Utility:Create("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, self.Theme.Primary),
-                ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
-                ColorSequenceKeypoint.new(1, self.Theme.Secondary)
-            }),
-            Rotation = 90,
-            Parent = dialogFrame
-        })
-        
-        -- Borde interior brillante
-        Utility:Create("UIStroke", {
-            Color = self.Theme.Accent,
-            Thickness = 1.5,
-            Transparency = 0.7,
-            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-            Parent = dialogFrame
-        })
-        
-        -- Añadir partículas de lava
-        Utility:CreateLavaParticles(dialogFrame, 8)
-    end
+    -- Si es tema lava, añadir efectos (verificar por el color primario en lugar de window.Theme)
+if self.Theme.Primary == PRIMARY_COLOR then -- Tema Lava
+    -- Gradiente
+    Utility:Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, self.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, self.Theme.Primary:Lerp(self.Theme.Secondary, 0.5)),
+            ColorSequenceKeypoint.new(1, self.Theme.Secondary)
+        }),
+        Rotation = 90,
+        Parent = dialogFrame
+    })
+    
+    -- Borde interior brillante
+    Utility:Create("UIStroke", {
+        Color = self.Theme.Accent,
+        Thickness = 1.5,
+        Transparency = 0.7,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Parent = dialogFrame
+    })
+    
+    -- Añadir partículas de lava
+    Utility:CreateLavaParticles(dialogFrame, 8)
+end
     
     -- Icono
     local iconId = "7743868191" -- Default warning icon
@@ -678,24 +682,24 @@ function NeonUI:IconDialog(options)
             Parent = button
         })
         
-        -- Si es tema lava, añadir efectos
-        if window.Theme and window.Theme == "Lava" then
-            -- Brillo para el botón
-            Utility:CreateGlow(button, self.Theme.Glow, 1.2)
-            
-            -- Gradiente para el botón principal
-            if i == #dialog.Buttons then
-                Utility:Create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, self.Theme.Accent),
-                        ColorSequenceKeypoint.new(0.5, self.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
-                        ColorSequenceKeypoint.new(1, self.Theme.Accent)
-                    }),
-                    Rotation = 45,
-                    Parent = button
-                })
-            end
-        end
+        -- Si es tema lava, añadir efectos (verificar por el color primario)
+if self.Theme.Primary == PRIMARY_COLOR then -- Tema Lava
+    -- Brillo para el botón
+    Utility:CreateGlow(button, self.Theme.Glow, 1.2)
+    
+    -- Gradiente para el botón principal
+    if i == #dialog.Buttons then
+        Utility:Create("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, self.Theme.Accent),
+                ColorSequenceKeypoint.new(0.5, self.Theme.Accent:Lerp(Color3.new(1,1,1), 0.2)),
+                ColorSequenceKeypoint.new(1, self.Theme.Accent)
+            }),
+            Rotation = 45,
+            Parent = button
+        })
+    end
+end
         
         -- Evento de clic
         button.MouseButton1Click:Connect(function()
@@ -1387,6 +1391,9 @@ window.SearchResults = Utility:Create("ScrollingFrame", {
     
     -- Funcionalidad del botón de cerrar con confirmación y diálogo con ícono
 window.CloseButton.MouseButton1Click:Connect(function()
+    -- Pequeña pausa para evitar problemas
+    task.wait(0.05)
+    
     -- Mostrar diálogo de confirmación con ícono
     NeonUI:IconDialog({
         Title = "Cerrar ventana",
@@ -1395,7 +1402,9 @@ window.CloseButton.MouseButton1Click:Connect(function()
         Buttons = {
             {
                 Title = "Cancelar",
-                Callback = function() end
+                Callback = function() 
+                    -- No hacer nada, simplemente cerrar el diálogo
+                end
             },
             {
                 Title = "Cerrar",
